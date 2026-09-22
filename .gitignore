@@ -1,0 +1,37 @@
+# ==========================================
+# Ambiente Virtual Python (MUITO IMPORTANTE)
+# ==========================================
+venv/
+env/
+ENV/
+.venv/
+
+# ==========================================
+# Configurações de Banco de Dados e Segredos
+# ==========================================
+.env
+*.pem
+*.key
+
+# ==========================================
+# Arquivos Temporários e Cache do Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# ==========================================
+# Configurações de Editores / IDEs
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ==========================================
+# Logs e Banco de Dados Local (se houver)
+# ==========================================
+*.log
+*.sqlite3
