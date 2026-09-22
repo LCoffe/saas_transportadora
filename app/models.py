@@ -16,6 +16,7 @@ from app.database import Base
 # --- Enumerações (Tipos Enumerados) ---
 
 class TipoUsuario(str, enum.Enum):
+    ADMIN = "ADMIN"                # Admin
     CLIENTE = "CLIENTE"            # Motorista do caminhão
     FUNCIONARIO = "FUNCIONARIO"    # Operador da central de monitoramento
 
