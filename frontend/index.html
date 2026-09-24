@@ -10,28 +10,11 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
 
-    <!-- Navegação / Cabeçalho -->
-    <nav class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center shadow-lg">
-        <div class="flex items-center space-x-3">
-            <span class="text-2xl">🚛</span>
-            <h1 class="text-xl font-bold tracking-wide text-amber-500">Telemetria SaaS</h1>
-        </div>
-        <div id="user-info" class="hidden flex items-center space-x-4">
-            <div class="text-right">
-                <span id="user-name" class="block text-sm font-semibold text-slate-200"></span>
-                <span id="user-role" class="block text-xs font-mono text-amber-400"></span>
-            </div>
-            <button onclick="logout()" class="text-xs bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded transition shadow">
-                Sair
-            </button>
-        </div>
-    </nav>
-
     <!-- Conteúdo Principal -->
     <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
 
-        <!-- TELA 1: FORMULÁRIO DE LOGIN -->
-        <section id="login-section" class="max-w-md mx-auto mt-12 bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700">
+        <!-- TELA 1: FORMULÁRIO DE LOGIN (Exibida por padrão quando NÃO logado) -->
+        <section id="secao-login" class="max-w-md mx-auto mt-12 bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700">
             <h2 class="text-2xl font-bold mb-2 text-center text-slate-100">Acessar Conta</h2>
             <p class="text-xs text-slate-400 text-center mb-6">Portal de Monitoramento e Telemetria</p>
             
@@ -51,135 +34,228 @@
             <p id="login-error" class="text-red-400 text-sm mt-4 text-center hidden"></p>
         </section>
 
-        <!-- TELA 2: DASHBOARD OPERACIONAL -->
-        <section id="dashboard-section" class="hidden space-y-6">
+        <!-- TELA 2: DASHBOARD OPERACIONAL (Exibida apenas quando LOGADO) -->
+        <section id="secao-app" class="hidden">
 
-            <!-- Painel de Gestão de Usuários (Apenas Admin e Funcionário) -->
-            <div id="cadastro-usuario-panel" class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md">
-                <h3 class="text-lg font-bold mb-1 text-amber-400 flex items-center space-x-2">
-                    <span>👤</span> <span id="titulo-cadastro-usuario">Gestão de Usuários</span>
-                </h3>
-                <p id="subtitulo-cadastro-usuario" class="text-xs text-slate-400 mb-4">Cadastre novos motoristas ou funcionários para acesso ao sistema.</p>
-                
-                <form id="user-create-form" onsubmit="cadastrarUsuario(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Nome Completo</label>
-                        <input type="text" id="new-user-name" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="Ex: Carlos Silva">
+            <!-- Header / Barra Superior (Dentro do secao-app) -->
+            <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 mb-6 rounded-lg">
+                <div class="max-w-7xl mx-auto flex justify-between items-center">
+                    
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🚛</span>
+                        <h1 class="text-xl font-bold text-amber-500">Telemetria SaaS</h1>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">E-mail</label>
-                        <input type="email" id="new-user-email" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="carlos@transp.com">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Senha</label>
-                        <input type="password" id="new-user-password" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="••••••••">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Perfil do Usuário</label>
-                        <select id="new-user-tipo" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500">
-                            <option value="CLIENTE">Motorista / Caminhoneiro</option>
-                            <option value="FUNCIONARIO" id="opt-funcionario">Funcionário Central</option>
-                            <option value="ADMIN" id="opt-admin">Administrador</option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-4 flex justify-end">
-                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 font-semibold text-slate-950 px-6 py-2 rounded transition shadow">
-                            Cadastrar Usuário
+
+                    <!-- Dados do Usuário e Logout -->
+                    <div id="usuario-info-bar" class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <p id="user-display-name" class="text-sm font-semibold text-white"></p>
+                            <p id="user-display-role" class="text-xs text-amber-400 font-mono"></p>
+                        </div>
+                        
+                        <button 
+                            type="button"
+                            onclick="handleLogout()" 
+                            class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-1.5 rounded text-xs font-semibold transition flex items-center space-x-1"
+                            title="Encerrar sessão"
+                        >
+                            <span>🚪</span>
+                            <span>Sair</span>
                         </button>
                     </div>
-                </form>
-            </div>
 
-            <!-- Painel do Motorista: Solicitação de Comandos -->
-            <div id="motorista-panel" class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md">
-                <h3 class="text-lg font-bold mb-1 text-amber-400 flex items-center space-x-2">
-                    <span>⚡</span> <span>Painel do Motorista - Envio de Comandos</span>
-                </h3>
-                <p class="text-xs text-slate-400 mb-4">Envie ordens remotas para o veículo vinculado.</p>
-                
-                <form id="command-form" onsubmit="solicitarComando(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">ID do Veículo</label>
-                        <input type="number" id="cmd-veiculo-id" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="Ex: 1">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Tipo de Comando</label>
-                        <select id="cmd-tipo" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500">
-                            <option value="TRANCAR_BAU">Trancar Baú</option>
-                            <option value="DESTRANCAR_BAU">Destrancar Baú</option>
-                            <option value="BLOQUEAR_IGNICAO">Bloquear Ignição</option>
-                            <option value="DESBLOQUEAR_IGNICAO">Desbloquear Ignição</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 font-medium text-white py-2 rounded transition shadow">
-                            Solicitar Comando
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </header>
 
-            <!-- Fila Geral de Comandos de Telemetria -->
-            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md">
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-100">Fila de Comandos de Telemetria</h3>
-                        <p class="text-xs text-slate-400">Acompanhamento em tempo real das solicitações.</p>
-                    </div>
-                    <button onclick="carregarComandos()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-slate-200 transition">
-                        🔄 Atualizar Fila
+            <div class="space-y-6">
+                <!-- 1. Painel de Gestão de Usuários (Visível para Admin/Funcionário) -->
+                <div id="painel-gestao" class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                    <button type="button" 
+                            onclick="togglePainel('container-criar-usuario-pai', 'seta-usuarios')" 
+                            class="w-full p-4 flex justify-between items-center bg-slate-800 hover:bg-slate-700/50 transition">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-amber-400 text-lg">👤</span>
+                            <h3 class="text-base font-semibold text-white">Gestão de Usuários</h3>
+                        </div>
+                        <svg id="seta-usuarios" class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
                     </button>
+
+                    <div id="container-criar-usuario-pai" class="hidden p-6 border-t border-slate-700/50 bg-slate-800/30">
+                        <p id="subtitulo-cadastro-usuario" class="text-xs text-slate-400 mb-4">Cadastre novos motoristas ou funcionários para acesso ao sistema.</p>
+                        
+                        <form id="user-create-form" onsubmit="cadastrarUsuario(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Nome Completo</label>
+                                <input type="text" id="new-user-nome" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="Ex: Carlos Silva">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">E-mail</label>
+                                <input type="email" id="new-user-email" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="carlos@transp.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Senha</label>
+                                <input type="password" id="new-user-senha" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="••••••••">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Perfil do Usuário</label>
+                                <select id="new-user-tipo" onchange="toggleCamposVeiculo()" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500">
+                                    <option value="CLIENTE">Motorista / Caminhoneiro</option>
+                                    <option value="FUNCIONARIO" id="opt-funcionario">Funcionário Central</option>
+                                    <option value="ADMIN" id="opt-admin">Administrador</option>
+                                </select>
+                            </div>
+
+                            <div id="box-veiculo" class="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-700/50 mt-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-amber-400 mb-1">Placa do Veículo *</label>
+                                    <input type="text" id="new-veiculo-placa" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="ABC1D23">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-amber-400 mb-1">Modelo do Veículo *</label>
+                                    <input type="text" id="new-veiculo-modelo" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Volvo FH 540">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-amber-400 mb-1">Marca do Veículo</label>
+                                    <input type="text" id="new-veiculo-marca" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Volvo">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-amber-400 mb-1">Ano do Veículo</label>
+                                    <input type="number" id="new-veiculo-ano" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="2023">
+                                </div>
+                            </div>
+
+                            <div class="md:col-span-4 flex justify-end">
+                                <button type="submit" class="bg-amber-500 hover:bg-amber-600 font-semibold text-slate-950 px-6 py-2 rounded transition shadow">
+                                    Cadastrar Usuário
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-3">ID</th>
-                                <th class="p-3">Veículo</th>
-                                <th class="p-3">Solicitante</th>
-                                <th class="p-3">Comando</th>
-                                <th class="p-3">Status</th>
-                                <th class="p-3">Ações (Central)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="commands-table-body" class="divide-y divide-slate-700">
-                            <!-- Linhas inseridas dinamicamente via JavaScript -->
-                        </tbody>
-                    </table>
+
+                <!-- 2. Painel do Motorista: Solicitação de Comandos -->
+                <div id="painel-motorista" class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                    <button type="button" 
+                            onclick="togglePainel('container-solicitacao', 'seta-solicitacao')" 
+                            class="w-full p-4 flex justify-between items-center bg-slate-800 hover:bg-slate-700/50 transition">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-amber-400 text-lg">⚡</span>
+                            <h3 class="text-base font-semibold text-white">Painel do Motorista - Solicitação de Comandos</h3>
+                        </div>
+                        <svg id="seta-solicitacao" class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div id="container-solicitacao" class="hidden p-6 border-t border-slate-700/50 bg-slate-800/30">
+                        <p class="text-xs text-slate-400 mb-4">Envie ordens remotas para o veículo vinculado.</p>
+                        
+                        <form id="command-form" onsubmit="solicitarComando(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Tipo de Comando</label>
+                                <select id="cmd-tipo" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500">
+                                    <option value="TRANCAR_BAU">Trancar Baú</option>
+                                    <option value="DESTRANCAR_BAU">Destrancar Baú</option>
+                                    <option value="BLOQUEAR_IGNICAO">Bloquear Ignição</option>
+                                    <option value="DESBLOQUEAR_IGNICAO">Desbloquear Ignição</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 font-medium text-white py-2 rounded transition shadow">
+                                    Solicitar Comando
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 3. Fila Geral de Comandos de Telemetria -->
+                <div class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                    <button type="button" 
+                            onclick="togglePainel('container-fila-comandos', 'seta-fila-comandos', carregarComandos)" 
+                            class="w-full p-4 flex justify-between items-center bg-slate-800 hover:bg-slate-700/50 transition">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-amber-400 text-lg">📊</span>
+                            <h3 class="text-base font-semibold text-white">Fila de Comandos</h3>
+                        </div>
+                        <svg id="seta-fila-comandos" class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div id="container-fila-comandos" class="hidden p-4 border-t border-slate-700/50 bg-slate-800/30">
+                        <div class="flex justify-between items-center mb-4">
+                            <p class="text-xs text-slate-400">Acompanhamento em tempo real das solicitações.</p>
+                            <button onclick="carregarComandos()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-slate-200 transition">
+                                🔄 Atualizar Fila
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700">
+                                    <tr>
+                                        <th class="p-3">ID</th>
+                                        <th class="p-3">PLACA DO VEÍCULO</th>
+                                        <th class="p-3">SOLICITANTE</th>
+                                        <th class="p-3">COMANDO</th>
+                                        <th class="p-3">STATUS</th>
+                                        <th class="p-3">AÇÕES (CENTRAL)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-comandos">
+                                    <!-- Injetado pelo JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Histórico das Últimas Interações Finalizadas -->
+                <div class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                    <button type="button" 
+                            onclick="togglePainel('container-historico', 'seta-historico', carregarHistoricoDecisoes)" 
+                            class="w-full p-4 flex justify-between items-center bg-slate-800 hover:bg-slate-700/50 transition">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-amber-400 text-lg">📜</span>
+                            <h3 class="text-base font-semibold text-white">Histórico de Decisões</h3>
+                        </div>
+                        <svg id="seta-historico" class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div id="container-historico" class="hidden p-4 border-t border-slate-700/50 bg-slate-800/30">
+                        <div class="flex justify-between items-center mb-4">
+                            <p class="text-xs text-slate-400">Comandos analisados e encerrados pela central.</p>
+                            <button onclick="carregarHistoricoDecisoes()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-slate-200 transition">
+                                🔄 Atualizar Histórico
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700">
+                                    <tr>
+                                        <th class="p-3">ID</th>
+                                        <th class="p-3">PLACA DO VEÍCULO</th>
+                                        <th class="p-3">SOLICITANTE</th>
+                                        <th class="p-3">COMANDO</th>
+                                        <th class="p-3">STATUS FINAL</th>
+                                        <th class="p-3">OBSERVAÇÃO / MOTIVO</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-historico">
+                                    <!-- Injetado pelo JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Histórico das Últimas 5 Interações Finalizadas -->
-            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md mt-6">
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-100 flex items-center space-x-2">
-                            <span>📜</span> <span>Histórico de Decisões (Últimas 5 Interações)</span>
-                        </h3>
-                        <p class="text-xs text-slate-400">Comandos analisados e encerrados pela central.</p>
-                    </div>
-                    <button onclick="carregarHistoricoComandos()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-slate-200 transition">
-                        🔄 Atualizar Histórico
-                    </button>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-3">ID</th>
-                                <th class="p-3">Veículo</th>
-                                <th class="p-3">Comando</th>
-                                <th class="p-3">Status</th>
-                                <th class="p-3">Observação / Central</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-table-body" class="divide-y divide-slate-700">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </section>
 
     </main>

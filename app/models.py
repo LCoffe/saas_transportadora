@@ -49,7 +49,7 @@ class UsuarioModel(Base):
     criado_em = Column(DateTime, default=datetime.utcnow)
 
     # Relacionamentos
-    veiculos = relationship("VeiculoModel", back_populates="proprietario")
+    veiculos = relationship("VeiculoModel", back_populates="cliente")
     comandos_solicitados = relationship(
         "SolicitacaoComandoModel", 
         foreign_keys="SolicitacaoComandoModel.motorista_id",
@@ -75,7 +75,7 @@ class VeiculoModel(Base):
     cliente_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
 
     # Relacionamentos
-    proprietario = relationship("UsuarioModel", back_populates="veiculos")
+    cliente = relationship("UsuarioModel", back_populates="veiculos")
     comandos = relationship("SolicitacaoComandoModel", back_populates="veiculo")
 
 
