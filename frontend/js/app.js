@@ -50,6 +50,7 @@ function atualizarInterface() {
         
         // Aplica as regras de RBAC por tipo de perfil (CLIENTE, FUNCIONARIO, ADMIN)
         aplicarPermissoesPerfil();
+        carregarListaUsuariosEdicao();
     } 
     // SE NÃO ESTIVER LOGADO:
     else {
@@ -213,6 +214,125 @@ async function cadastrarUsuario(event) {
         }
     } catch (err) {
         console.error("Erro ao registrar usuário:", err);
+    }
+}
+
+// Carrega a lista de usuários respeitando o perfil logado
+async function carregarListaUsuariosEdicao() {
+    const userTipo = localStorage.getItem("user_tipo");
+    const userId = localStorage.getItem("user_id");
+
+    try {
+        // Passamos os parâmetros do utilizador logado para evitar bloqueios na API
+        const response = await apiFetch(`/usuarios/?usuario_logado_id=${userId}&usuario_logado_tipo=${userTipo}`);
+        
+        if (!response.ok) {
+            console.error("Erro ao buscar utilizadores:", response.status);
+            return;
+        }
+
+        const usuarios = await response.json();
+        const tbody = document.getElementById("tbody-gerenciar-usuarios");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if (!usuarios || usuarios.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="p-4 text-center text-slate-500 italic">
+                        Nenhum utilizador encontrado.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        usuarios.forEach(u => {
+            // Aplica regra visual de exibição baseada na restrição do utilizador logado
+            if (userTipo === "CLIENTE" && u.id != userId) return;
+            if (userTipo === "FUNCIONARIO" && u.tipo !== "CLIENTE" && u.id != userId) return;
+
+            const tr = document.createElement("tr");
+            tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition";
+            tr.innerHTML = `
+                <td class="p-3 font-mono text-slate-400">#${u.id}</td>
+                <td class="p-3 text-white font-medium">${u.nome}</td>
+                <td class="p-3 text-slate-300">${u.email}</td>
+                <td class="p-3 font-mono text-amber-400">${u.tipo}</td>
+                <td class="p-3 flex gap-2">
+                    <button onclick="abrirModalEdicao(${u.id}, '${u.nome}', '${u.email}', '${u.tipo}')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1 rounded transition">
+                        Editar
+                    </button>
+                    <button onclick="excluirCadastroUsuario(${u.id})" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded transition">
+                        Excluir
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Erro ao carregar utilizadores para edição:", err);
+    }
+}
+
+// Função para excluir utilizador diretamente pela tabela
+async function excluirCadastroUsuario(id) {
+    if (!confirm("Tem a certeza de que deseja excluir este utilizador?")) return;
+
+    const logadoId = localStorage.getItem("user_id");
+    const logadoTipo = localStorage.getItem("user_tipo");
+
+    try {
+        const response = await apiFetch(`/usuarios/${id}?usuario_logado_id=${logadoId}&usuario_logado_tipo=${logadoTipo}`, {
+            method: "DELETE"
+        });
+
+        if (response.status === 204 || response.ok) {
+            alert("Utilizador excluído com sucesso!");
+            carregarListaUsuariosEdicao();
+        } else {
+            const err = await response.json();
+            alert(`Erro ao excluir: ${err.detail || 'Permissão negada.'}`);
+        }
+    } catch (error) {
+        console.error("Erro na requisição de exclusão:", error);
+    }
+}
+
+// Função simples para disparar a edição (pode abrir um prompt ou preencher um modal)
+async function abrirModalEdicao(id, nomeAtual, emailAtual, tipoAtual) {
+    const novoNome = prompt("Editar Nome:", nomeAtual);
+    if (novoNome === null) return; // Cancelado
+    const novoEmail = prompt("Editar E-mail:", emailAtual);
+    if (novoEmail === null) return;
+    const novaSenha = prompt("Digite a nova senha (deixe em branco para não alterar):");
+
+    const payload = {
+        nome: novoNome,
+        email: novoEmail
+    };
+    if (novaSenha && novaSenha.trim() !== "") {
+        payload.senha = novaSenha.trim();
+    }
+
+    const logadoId = localStorage.getItem("user_id");
+    const logadoTipo = localStorage.getItem("user_tipo");
+
+    try {
+        const response = await apiFetch(`/usuarios/${id}?usuario_logado_id=${logadoId}&usuario_logado_tipo=${logadoTipo}`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert("Usuário atualizado com sucesso!");
+            carregarListaUsuariosEdicao();
+        } else {
+            const err = await response.json();
+            alert(`Erro ao atualizar: ${err.detail || 'Permissão negada.'}`);
+        }
+    } catch (error) {
+        console.error("Erro na requisição de atualização:", error);
     }
 }
 

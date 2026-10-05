@@ -49,16 +49,17 @@ class UsuarioModel(Base):
     criado_em = Column(DateTime, default=datetime.utcnow)
 
     # Relacionamentos
-    veiculos = relationship("VeiculoModel", back_populates="cliente")
+    veiculos = relationship("VeiculoModel", back_populates="cliente", cascade="all, delete-orphan")  # Se o usuário for excluído, seus veículos também são removidos
     comandos_solicitados = relationship(
         "SolicitacaoComandoModel", 
         foreign_keys="SolicitacaoComandoModel.motorista_id",
-        back_populates="motorista"
+        back_populates="motorista",
+        cascade="all, delete-orphan"  # Se o motorista for excluído, seus comandos também são removidos
     )
     comandos_aprovados = relationship(
         "SolicitacaoComandoModel", 
         foreign_keys="SolicitacaoComandoModel.funcionario_id",
-        back_populates="funcionario"
+        back_populates="funcionario",
     )
 
 
