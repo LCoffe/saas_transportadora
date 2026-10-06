@@ -231,6 +231,8 @@ async function carregarListaUsuariosEdicao() {
         }
 
         const usuarios = await response.json();
+        console.log("Lista de usuários carregada:", usuarios);
+        console.log("Veiculo associado:", usuarios.veiculo);
         const tbody = document.getElementById("tbody-gerenciar-usuarios");
         const template = document.getElementById("template-usuario-linha"); // Pega o template do HTML
 
@@ -388,10 +390,10 @@ async function salvarEdicaoModal(event) {
     if (logadoTipo == "CLIENTE"){
         // Se for CLIENTE, também envia os dados do veículo
         payload.veiculo = {
-            placa: document.getElementById("new-veiculo-placa").value,
-            modelo: document.getElementById("new-veiculo-modelo").value,
-            marca: document.getElementById("new-veiculo-marca").value,
-            ano: parseInt(document.getElementById("new-veiculo-ano").value) || null
+            placa: document.getElementById("modalPlaca").value,
+            modelo: document.getElementById("modalModelo").value,
+            marca: document.getElementById("modalMarca").value,
+            ano: parseInt(document.getElementById("modalAno").value) || null
         };
     }
 

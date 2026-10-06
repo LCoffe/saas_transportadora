@@ -49,7 +49,7 @@ class UsuarioModel(Base):
     criado_em = Column(DateTime, default=datetime.utcnow)
 
     # Relacionamentos
-    veiculos = relationship("VeiculoModel", back_populates="cliente", cascade="all, delete-orphan")  # Se o usuário for excluído, seus veículos também são removidos
+    veiculo = relationship("VeiculoModel", back_populates="cliente", uselist=False, cascade="all, delete-orphan")  # Se o usuário for excluído, seus veículos também são removidos
     comandos_solicitados = relationship(
         "SolicitacaoComandoModel", 
         foreign_keys="SolicitacaoComandoModel.motorista_id",
@@ -60,6 +60,7 @@ class UsuarioModel(Base):
         "SolicitacaoComandoModel", 
         foreign_keys="SolicitacaoComandoModel.funcionario_id",
         back_populates="funcionario",
+        cascade="all, delete-orphan"  # Se o funcionário for excluído, seus comandos também são removidos
     )
 
 
@@ -76,7 +77,7 @@ class VeiculoModel(Base):
     cliente_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
 
     # Relacionamentos
-    cliente = relationship("UsuarioModel", back_populates="veiculos")
+    cliente = relationship("UsuarioModel", back_populates="veiculo")
     comandos = relationship("SolicitacaoComandoModel", back_populates="veiculo")
 
 

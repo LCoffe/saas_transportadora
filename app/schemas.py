@@ -31,13 +31,19 @@ class VeiculoResponse(VeiculoBase):
     class Config:
         from_attributes = True
 
-class VeiculoResumoResponse(BaseModel):
+class VeiculoResumoResponse(VeiculoBase):
     id: int
     placa: str
     modelo: str
 
     class Config:
         from_attributes = True
+
+class VeiculoUpdate(BaseModel):
+    placa: Optional[str] = Field(None, min_length=7, max_length=10)
+    modelo: Optional[str] = Field(None, max_length=50)
+    marca: Optional[str] = Field(None, max_length=50)
+    ano: Optional[int] = None
 
 # ==========================================
 # 2. SCHEMAS DE USUÁRIO (Motorista / Funcionário)
@@ -55,12 +61,6 @@ class UsuarioCreate(UsuarioBase):
     senha: str = Field(..., min_length=6, max_length=50, example="senhaSegura123")
     veiculo: Optional[VeiculoAninhadoCreate] = None  # Dados do veículo, caso seja um motorista
 
-class VeiculoUpdate(BaseModel):
-    placa: Optional[str] = Field(None, min_length=7, max_length=10)
-    modelo: Optional[str] = Field(None, max_length=50)
-    marca: Optional[str] = Field(None, max_length=50)
-    ano: Optional[int] = None
-
 # Schema para atualização de usuário (todos os campos opcionais)
 class UsuarioUpdate(BaseModel):
     nome: Optional[str] = Field(None, min_length=3, max_length=100)
@@ -75,7 +75,7 @@ class UsuarioResponse(UsuarioBase):
     id: int
     ativo: bool
     criado_em: datetime
-    veiculo: Optional[VeiculoResponse] = None  # Inclui os dados do veículo, caso seja um motorista
+    veiculo: Optional[VeiculoResumoResponse] = None  # Inclui os dados do veículo, caso seja um motorista
 
     class Config:
         from_attributes = True  # Permite conversão direta do SQLAlchemy ORM para Pydantic
