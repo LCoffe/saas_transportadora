@@ -136,42 +136,64 @@
                 </div>
 
                 <div id="painel-lista-usuarios" class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden mt-6">
-                    <div class="p-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
-                        <h3 class="text-base font-semibold text-white">Gerenciar Cadastros Existentes</h3>
-                        <button onclick="carregarListaUsuariosEdicao()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-slate-200 transition">🔄 Atualizar Lista</button>
-                    </div>
-                    <div class="p-4 overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-700">
-                                <tr>
-                                    <th class="p-3">ID</th>
-                                    <th class="p-3">Nome</th>
-                                    <th class="p-3">E-mail</th>
-                                    <th class="p-3">Tipo</th>
-                                    <th class="p-3">Ações</th>
+                    <!-- Cabeçalho Clicável com a Seta -->
+                    <button type="button" 
+                            onclick="togglePainel('container-gerenciar-usuarios', 'seta-gerenciar-usuarios', carregarListaUsuariosEdicao)" 
+                            class="w-full p-4 flex justify-between items-center bg-slate-800 hover:bg-slate-700/50 transition focus:outline-none">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-amber-400 text-lg">👥</span>
+                            <h3 class="text-base font-semibold text-white">Gerenciar Cadastros Existentes</h3>
+                        </div>
+                        <svg id="seta-gerenciar-usuarios" class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Conteúdo Sanfona (Inicia oculto com 'hidden') -->
+                    <div id="container-gerenciar-usuarios" class="hidden p-4 border-t border-slate-700/50 bg-slate-800/30">
+                        
+                        <!-- Botão Atualizar -->
+                        <div class="flex justify-end items-center mb-4">
+                            <button onclick="carregarListaUsuariosEdicao()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-slate-200 transition flex items-center gap-1">
+                                🔄 Atualizar Lista
+                            </button>
+                        </div>
+
+                        <!-- Tabela -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-700">
+                                    <tr>
+                                        <th class="p-3">ID</th>
+                                        <th class="p-3">Nome</th>
+                                        <th class="p-3">E-mail</th>
+                                        <th class="p-3">Tipo</th>
+                                        <th class="p-3">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-gerenciar-usuarios">
+                                    <!-- Preenchido via JavaScript -->
+                                </tbody>
+                            </table>
+
+                            <!-- Template da linha de usuário (Inalterado) -->
+                            <template id="template-usuario-linha">
+                                <tr class="border-b border-slate-700/50 hover:bg-slate-800/50 transition">
+                                    <td class="p-3 font-mono text-slate-400 col-id"></td>
+                                    <td class="p-3 text-white font-medium col-nome"></td>
+                                    <td class="p-3 text-slate-300 col-email"></td>
+                                    <td class="p-3 font-mono text-amber-400 col-tipo"></td>
+                                    <td class="p-3 flex gap-2">
+                                        <button class="btn-editar bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1 rounded transition">
+                                            Editar
+                                        </button>
+                                        <button class="btn-excluir bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded transition">
+                                            Excluir
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody id="tbody-gerenciar-usuarios">
-                                <!-- Preenchido via JavaScript -->
-                            </tbody>
-                        </table>
-                        <!-- Template da linha de usuário (O HTML fica todo aqui) -->
-                        <template id="template-usuario-linha">
-                            <tr class="border-b border-slate-700/50 hover:bg-slate-800/50 transition">
-                                <td class="p-3 font-mono text-slate-400 col-id"></td>
-                                <td class="p-3 text-white font-medium col-nome"></td>
-                                <td class="p-3 text-slate-300 col-email"></td>
-                                <td class="p-3 font-mono text-amber-400 col-tipo"></td>
-                                <td class="p-3 flex gap-2">
-                                    <button class="btn-editar bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1 rounded transition">
-                                        Editar
-                                    </button>
-                                    <button class="btn-excluir bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded transition">
-                                        Excluir
-                                    </button>
-                                </td>
-                            </tr>
-                        </template>
+                            </template>
+                        </div>
                     </div>
                 </div>
                 
@@ -297,55 +319,91 @@
             </div>
 
             <!-- MODAL DE EDIÇÃO ÚNICO -->
-            <div id="modalEdicao" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-                <div style="background: white; padding: 30px; border-radius: 8px; width: 400px; color : #000000; box-shadow: 0px 4px 10px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
-                    <h2>Editar Utilizador</h2>
+             
+                        <!-- MODAL DE EDIÇÃO DE USUÁRIO -->
+            <div id="modalEdicao" style="display: none;" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex justify-center items-center p-4">
+                <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-md p-6 text-slate-100 shadow-2xl max-h-[90vh] overflow-y-auto">
+                    
+                    <!-- Cabeçalho da Modal -->
+                    <div class="flex justify-between items-center mb-5 border-b border-slate-700 pb-3">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            ✏️ Editar Utilizador
+                        </h3>
+                        <button type="button" onclick="fecharModalEdicao()" class="text-slate-400 hover:text-white transition">
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- Formulário de Edição -->
                     <form id="formModalEdicao" onsubmit="salvarEdicaoModal(event)">
                         <input type="hidden" id="modalUserId">
-                        
-                        <div style="margin-bottom: 15px; color: #000000;">
-                            <label for="modalNome" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome:</label>
-                            <input type="text" id="modalNome" required style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                        </div>
-                        
-                        <div style="margin-bottom: 15px; color: #000000;">
-                            <label for="modalEmail" style="display: block; margin-bottom: 5px; font-weight: bold;">E-mail:</label>
-                            <input type="email" id="modalEmail" required style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                        </div>
-                        
-                        <div style="margin-bottom: 15px; color: #000000;">
-                            <label for="modalSenha" style="display: block; margin-bottom: 5px; font-weight: bold;">Nova Senha (opcional):</label>
-                            <input type="password" id="modalSenha" placeholder="Deixe em branco para não alterar" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+                        <!-- Campo Nome -->
+                        <div class="mb-4">
+                            <label for="modalNome" class="block text-xs font-semibold text-slate-300 mb-1">Nome:</label>
+                            <input type="text" id="modalNome" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-400 transition">
                         </div>
 
-                        <!-- BLOCO DO VEÍCULOS (Fica oculto por predefinição e só aparece para CLIENTE) -->
-                        <div id="blocoVeiculo" style="display: none; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
-                            <h4 style="margin-bottom: 10px; color: #333;">Dados do Veículo</h4>
+                        <!-- Campo E-mail -->
+                        <div class="mb-4">
+                            <label for="modalEmail" class="block text-xs font-semibold text-slate-300 mb-1">E-mail:</label>
+                            <input type="email" id="modalEmail" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-400 transition">
+                        </div>
+
+                        <!-- Campo Nova Senha -->
+                        <div class="mb-4">
+                            <label for="modalSenha" class="block text-xs font-semibold text-slate-300 mb-1">Nova Senha (opcional):</label>
+                            <input type="password" id="modalSenha" placeholder="Deixe em branco para manter a atual" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-400 transition placeholder:text-slate-500">
+                        </div>
+
+                        <!-- BLOCO DO VEÍCULO (Oculto via estilo por padrão; exibido via JS se for CLIENTE) -->
+                        <div id="blocoVeiculo" style="display: none;" class="border-t border-slate-700/60 pt-4 mt-4">
                             
-                            <div style="margin-bottom: 15px; color: #000000;">
-                                <label for="modalPlaca" style="display: block; margin-bottom: 5px; font-weight: bold;">Placa do Veículo:</label>
-                                <input type="text" id="modalPlaca" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                            </div>
+                            <!-- Botão Clicável usando exatamente a sua função togglePainel -->
+                            <button type="button" 
+                                    onclick="togglePainel('conteudoVeiculoModal', 'seta-modal-veiculo')" 
+                                    class="w-full flex justify-between items-center py-2 text-left hover:opacity-80 transition focus:outline-none">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-amber-400 text-sm">🚚</span>
+                                    <h4 class="text-sm font-semibold text-slate-200">Dados do Veículo</h4>
+                                </div>
+                                <svg id="seta-modal-veiculo" class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
 
-                            <div style="margin-bottom: 15px; color: #000000;">
-                                <label for="modalModelo" style="display: block; margin-bottom: 5px; font-weight: bold;">Modelo do Veículo:</label>
-                                <input type="text" id="modalModelo" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                            </div>
+                            <!-- Conteúdo colapsável dos campos do veículo -->
+                            <div id="conteudoVeiculoModal" class="space-y-3 mt-3">
+                                <div>
+                                    <label for="modalPlaca" class="block text-xs font-semibold text-slate-300 mb-1">Placa do Veículo:</label>
+                                    <input type="text" id="modalPlaca" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-400 transition">
+                                </div>
 
-                            <div style="margin-bottom: 15px; color: #000000;">
-                                <label for="modalMarca" style="display: block; margin-bottom: 5px; font-weight: bold;">Marca do Veículo:</label>
-                                <input type="text" id="modalMarca" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                            </div>
+                                <div>
+                                    <label for="modalModelo" class="block text-xs font-semibold text-slate-300 mb-1">Modelo do Veículo:</label>
+                                    <input type="text" id="modalModelo" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-400 transition">
+                                </div>
 
-                            <div style="margin-bottom: 20px; color: #000000;">
-                                <label for="modalAno" style="display: block; margin-bottom: 5px; font-weight: bold;">Ano do Veículo:</label>
-                                <input type="number" id="modalAno" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                                <div>
+                                    <label for="modalMarca" class="block text-xs font-semibold text-slate-300 mb-1">Marca do Veículo:</label>
+                                    <input type="text" id="modalMarca" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-400 transition">
+                                </div>
+
+                                <div>
+                                    <label for="modalAno" class="block text-xs font-semibold text-slate-300 mb-1">Ano do Veículo:</label>
+                                    <input type="number" id="modalAno" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-400 transition">
+                                </div>
                             </div>
                         </div>
                         
-                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                            <button type="button" onclick="fecharModalEdicao()" style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Cancelar</button>
-                            <button type="submit" style="background-color: #007BFF; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Salvar Alterações</button>
+                        <!-- Botões de Ação do Rodapé -->
+                        <div class="flex justify-end gap-3 mt-6 border-t border-slate-700/60 pt-4">
+                            <button type="button" onclick="fecharModalEdicao()" class="px-4 py-2 text-xs font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-4 py-2 text-xs font-medium bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold rounded transition shadow">
+                                Salvar Alterações
+                            </button>
                         </div>
                     </form>
                 </div>
