@@ -53,6 +53,22 @@ def listar_usuarios(db: Session = Depends(get_db)):
     """
     return db.query(models.UsuarioModel).all()
 
+# 1. ROTA GET PARA OBTER UM USUÁRIO ESPECÍFICO PELO ID
+@router.get("/{usuario_id}", response_model=schemas.UsuarioResponse)
+def obter_usuario(
+    usuario_id: int, 
+    usuario_logado_id: Optional[int] = None, 
+    usuario_logado_tipo: Optional[str] = None, 
+    db: Session = Depends(get_db)
+):
+    """
+    Busca um utilizador específico pelo ID para preencher a tela de edição.
+    """
+    usuario = db.query(models.UsuarioModel).filter(models.UsuarioModel.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Utilizador não encontrado.")
+    return usuario
+
 @router.put("/{usuario_id}", response_model=UsuarioResponse)
 def atualizar_usuario(usuario_id: int, dados_atualizacao: UsuarioUpdate, usuario_logado_id: int, usuario_logado_tipo: str, db: Session = Depends(get_db)):
     """

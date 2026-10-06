@@ -75,6 +75,7 @@ class UsuarioResponse(UsuarioBase):
     id: int
     ativo: bool
     criado_em: datetime
+    veiculo: Optional[VeiculoResponse] = None  # Inclui os dados do veículo, caso seja um motorista
 
     class Config:
         from_attributes = True  # Permite conversão direta do SQLAlchemy ORM para Pydantic

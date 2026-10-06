@@ -223,7 +223,6 @@ async function carregarListaUsuariosEdicao() {
     const userId = localStorage.getItem("user_id");
 
     try {
-        // Passamos os parâmetros do utilizador logado para evitar bloqueios na API
         const response = await apiFetch(`/usuarios/?usuario_logado_id=${userId}&usuario_logado_tipo=${userTipo}`);
         
         if (!response.ok) {
@@ -233,7 +232,9 @@ async function carregarListaUsuariosEdicao() {
 
         const usuarios = await response.json();
         const tbody = document.getElementById("tbody-gerenciar-usuarios");
-        if (!tbody) return;
+        const template = document.getElementById("template-usuario-linha"); // Pega o template do HTML
+
+        if (!tbody || !template) return;
 
         tbody.innerHTML = "";
 
@@ -248,27 +249,28 @@ async function carregarListaUsuariosEdicao() {
         }
 
         usuarios.forEach(u => {
-            // Aplica regra visual de exibição baseada na restrição do utilizador logado
             if (userTipo === "CLIENTE" && u.id != userId) return;
             if (userTipo === "FUNCIONARIO" && u.tipo !== "CLIENTE" && u.id != userId) return;
 
-            const tr = document.createElement("tr");
-            tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition";
-            tr.innerHTML = `
-                <td class="p-3 font-mono text-slate-400">#${u.id}</td>
-                <td class="p-3 text-white font-medium">${u.nome}</td>
-                <td class="p-3 text-slate-300">${u.email}</td>
-                <td class="p-3 font-mono text-amber-400">${u.tipo}</td>
-                <td class="p-3 flex gap-2">
-                    <button onclick="abrirModalEdicao(${u.id}, '${u.nome}', '${u.email}', '${u.tipo}')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1 rounded transition">
-                        Editar
-                    </button>
-                    <button onclick="excluirCadastroUsuario(${u.id})" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded transition">
-                        Excluir
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+            // Clona a estrutura HTML do template
+            const clone = template.content.cloneNode(true);
+
+            // Preenche os textos
+            clone.querySelector(".col-id").textContent = `#${u.id}`;
+            clone.querySelector(".col-nome").textContent = u.nome;
+            clone.querySelector(".col-email").textContent = u.email;
+            clone.querySelector(".col-tipo").textContent = u.tipo;
+
+            // Configura o botão de Editar dinamicamente
+            const btnEditar = clone.querySelector(".btn-editar");
+            btnEditar.onclick = () => abrirModalEdicao(u.id, u.tipo);
+
+            // Configura o botão de Excluir dinamicamente
+            const btnExcluir = clone.querySelector(".btn-excluir");
+            btnExcluir.onclick = () => excluirCadastroUsuario(u.id);
+
+            // Adiciona a linha pronta na tabela
+            tbody.appendChild(clone);
         });
     } catch (err) {
         console.error("Erro ao carregar utilizadores para edição:", err);
@@ -299,34 +301,113 @@ async function excluirCadastroUsuario(id) {
     }
 }
 
-// Função simples para disparar a edição (pode abrir um prompt ou preencher um modal)
-async function abrirModalEdicao(id, nomeAtual, emailAtual, tipoAtual) {
-    const novoNome = prompt("Editar Nome:", nomeAtual);
-    if (novoNome === null) return; // Cancelado
-    const novoEmail = prompt("Editar E-mail:", emailAtual);
-    if (novoEmail === null) return;
-    const novaSenha = prompt("Digite a nova senha (deixe em branco para não alterar):");
+    async function abrirModalEdicao(id, nomeAtual, emailAtual, tipoAtual) {
+        console.log("--- INÍCIO DA EDIÇÃO ---");
+        console.log("1. tipoAtual recebido no parâmetro:", tipoAtual);
+
+        const logadoId = localStorage.getItem("user_id");
+        const logadoTipo = localStorage.getItem("user_tipo");
+
+        document.getElementById("modalUserId").value = id;
+        document.getElementById("modalSenha").value = "";
+
+        try {
+            const response = await fetch(`/usuarios/${id}?usuario_logado_id=${logadoId}&usuario_logado_tipo=${logadoTipo}`);
+            
+            if (response.ok) {
+                const usuario = await response.json();
+                console.log("2. Objeto completo retornado pela API:", usuario);
+                console.log("3. usuario.tipo vindo do banco:", usuario.tipo);
+                
+                document.getElementById("modalNome").value = usuario.nome || "";
+                document.getElementById("modalEmail").value = usuario.email || "";
+
+                // Vamos priorizar o tipo que vem do banco (usuario.tipo), ou o parâmetro se não houver
+                const tipoBruto = usuario.tipo || tipoAtual || "";
+                const tipoFormatado = tipoBruto.toUpperCase();
+                
+                console.log("4. Tipo formatado para comparação:", tipoFormatado);
+
+                if (tipoFormatado === "CLIENTE") {
+                    console.log(">>> SUCESSO: Entrou no IF de CLIENTE! <<<");
+                    
+                    document.getElementById("blocoVeiculo").style.display = "block";
+                    
+                    if (usuario.veiculo) {
+                        console.log("5. Veículo encontrado:", usuario.veiculo);
+                        document.getElementById("modalPlaca").value = usuario.veiculo.placa || "";
+                        document.getElementById("modalModelo").value = usuario.veiculo.modelo || "";
+                        document.getElementById("modalMarca").value = usuario.veiculo.marca || "";
+                        document.getElementById("modalAno").value = usuario.veiculo.ano || "";
+                    } else {
+                        console.log("5. Aviso: O usuário é cliente, mas veio sem veículo cadastrado.");
+                        document.getElementById("modalPlaca").value = "";
+                        document.getElementById("modalModelo").value = "";
+                        document.getElementById("modalMarca").value = "";
+                        document.getElementById("modalAno").value = "";
+                    }
+                } else {
+                    console.log(">>> ATENÇÃO: Caiu no ELSE (Não reconheceu como CLIENTE) <<<");
+                    document.getElementById("blocoVeiculo").style.display = "none";
+                }
+
+                document.getElementById("modalEdicao").style.display = "flex";
+
+            } else {
+                alert("Não foi possível carregar os dados do utilizador.");
+            }
+        } catch (error) {
+            console.error("Erro ao buscar utilizador:", error);
+        }
+    }
+
+    function fecharModalEdicao() {
+        document.getElementById("modalEdicao").style.display = "none";
+    }
+
+// 3. Salva as alterações via PUT
+async function salvarEdicaoModal(event) {
+    event.preventDefault();
+
+    const id = document.getElementById("modalUserId").value;
+    const novoNome = document.getElementById("modalNome").value;
+    const novoEmail = document.getElementById("modalEmail").value;
+    const novaSenha = document.getElementById("modalSenha").value;
 
     const payload = {
         nome: novoNome,
         email: novoEmail
     };
+
     if (novaSenha && novaSenha.trim() !== "") {
         payload.senha = novaSenha.trim();
     }
 
     const logadoId = localStorage.getItem("user_id");
     const logadoTipo = localStorage.getItem("user_tipo");
+    if (logadoTipo == "CLIENTE"){
+        // Se for CLIENTE, também envia os dados do veículo
+        payload.veiculo = {
+            placa: document.getElementById("new-veiculo-placa").value,
+            modelo: document.getElementById("new-veiculo-modelo").value,
+            marca: document.getElementById("new-veiculo-marca").value,
+            ano: parseInt(document.getElementById("new-veiculo-ano").value) || null
+        };
+    }
 
     try {
-        const response = await apiFetch(`/usuarios/${id}?usuario_logado_id=${logadoId}&usuario_logado_tipo=${logadoTipo}`, {
+        const response = await fetch(`/usuarios/${id}?usuario_logado_id=${logadoId}&usuario_logado_tipo=${logadoTipo}`, {
             method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(payload)
         });
 
         if (response.ok) {
             alert("Usuário atualizado com sucesso!");
-            carregarListaUsuariosEdicao();
+            fecharModalEdicao(); // Fecha o modal
+            carregarListaUsuariosEdicao(); // Atualiza a tabela na tela principal
         } else {
             const err = await response.json();
             alert(`Erro ao atualizar: ${err.detail || 'Permissão negada.'}`);

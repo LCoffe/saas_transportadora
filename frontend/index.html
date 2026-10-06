@@ -155,6 +155,23 @@
                                 <!-- Preenchido via JavaScript -->
                             </tbody>
                         </table>
+                        <!-- Template da linha de usuário (O HTML fica todo aqui) -->
+                        <template id="template-usuario-linha">
+                            <tr class="border-b border-slate-700/50 hover:bg-slate-800/50 transition">
+                                <td class="p-3 font-mono text-slate-400 col-id"></td>
+                                <td class="p-3 text-white font-medium col-nome"></td>
+                                <td class="p-3 text-slate-300 col-email"></td>
+                                <td class="p-3 font-mono text-amber-400 col-tipo"></td>
+                                <td class="p-3 flex gap-2">
+                                    <button class="btn-editar bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1 rounded transition">
+                                        Editar
+                                    </button>
+                                    <button class="btn-excluir bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded transition">
+                                        Excluir
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
                     </div>
                 </div>
                 
@@ -279,6 +296,60 @@
                 </div>
             </div>
 
+            <!-- MODAL DE EDIÇÃO ÚNICO -->
+            <div id="modalEdicao" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+                <div style="background: white; padding: 30px; border-radius: 8px; width: 400px; color : #000000; box-shadow: 0px 4px 10px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
+                    <h2>Editar Utilizador</h2>
+                    <form id="formModalEdicao" onsubmit="salvarEdicaoModal(event)">
+                        <input type="hidden" id="modalUserId">
+                        
+                        <div style="margin-bottom: 15px; color: #000000;">
+                            <label for="modalNome" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome:</label>
+                            <input type="text" id="modalNome" required style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; color: #000000;">
+                            <label for="modalEmail" style="display: block; margin-bottom: 5px; font-weight: bold;">E-mail:</label>
+                            <input type="email" id="modalEmail" required style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; color: #000000;">
+                            <label for="modalSenha" style="display: block; margin-bottom: 5px; font-weight: bold;">Nova Senha (opcional):</label>
+                            <input type="password" id="modalSenha" placeholder="Deixe em branco para não alterar" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+
+                        <!-- BLOCO DO VEÍCULOS (Fica oculto por predefinição e só aparece para CLIENTE) -->
+                        <div id="blocoVeiculo" style="display: none; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
+                            <h4 style="margin-bottom: 10px; color: #333;">Dados do Veículo</h4>
+                            
+                            <div style="margin-bottom: 15px; color: #000000;">
+                                <label for="modalPlaca" style="display: block; margin-bottom: 5px; font-weight: bold;">Placa do Veículo:</label>
+                                <input type="text" id="modalPlaca" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+
+                            <div style="margin-bottom: 15px; color: #000000;">
+                                <label for="modalModelo" style="display: block; margin-bottom: 5px; font-weight: bold;">Modelo do Veículo:</label>
+                                <input type="text" id="modalModelo" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+
+                            <div style="margin-bottom: 15px; color: #000000;">
+                                <label for="modalMarca" style="display: block; margin-bottom: 5px; font-weight: bold;">Marca do Veículo:</label>
+                                <input type="text" id="modalMarca" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+
+                            <div style="margin-bottom: 20px; color: #000000;">
+                                <label for="modalAno" style="display: block; margin-bottom: 5px; font-weight: bold;">Ano do Veículo:</label>
+                                <input type="number" id="modalAno" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                            <button type="button" onclick="fecharModalEdicao()" style="background-color: #6c757d; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="background-color: #007BFF; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Salvar Alterações</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </section>
 
     </main>
