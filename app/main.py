@@ -14,7 +14,7 @@ from app.routers import comandos, usuarios
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="SaaS Telemetria & Monitoramento de Logística",
+    title="GRC - Telemetria & Monitoramento de Logística",
     description="API para solicitação e controle de comandos de veículos (trancar/destrancar baú, ignição).",
     version="1.0.0"
 )
@@ -46,6 +46,6 @@ app.mount("/site", StaticFiles(directory="frontend", html=True), name="frontend"
 def health_check():
     return {
         "status": "online",
-        "mensagem": "SaaS de Telemetria Operacional rodando com sucesso!",
+        "mensagem": "GRC rodando com sucesso!",
         "timestamp": datetime.utcnow()
     }

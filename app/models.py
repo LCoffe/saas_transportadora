@@ -80,7 +80,6 @@ class VeiculoModel(Base):
     cliente = relationship("UsuarioModel", back_populates="veiculo")
     comandos = relationship("SolicitacaoComandoModel", back_populates="veiculo")
 
-
 class SolicitacaoComandoModel(Base):
     __tablename__ = "comandos_solicitados"
 
