@@ -51,6 +51,8 @@ function atualizarInterface() {
         // Aplica as regras de RBAC por tipo de perfil (CLIENTE, FUNCIONARIO, ADMIN)
         aplicarPermissoesPerfil();
         carregarListaUsuariosEdicao();
+        carregarHistoricoDecisoes();
+        carregarComandos();
     } 
     // SE NÃO ESTIVER LOGADO:
     else {
@@ -303,69 +305,69 @@ async function excluirCadastroUsuario(id) {
     }
 }
 
-    async function abrirModalEdicao(id, nomeAtual, emailAtual, tipoAtual) {
-        console.log("--- INÍCIO DA EDIÇÃO ---");
-        console.log("1. tipoAtual recebido no parâmetro:", tipoAtual);
+async function abrirModalEdicao(id, nomeAtual, emailAtual, tipoAtual) {
+    console.log("--- INÍCIO DA EDIÇÃO ---");
+    console.log("1. tipoAtual recebido no parâmetro:", tipoAtual);
 
-        const logadoId = localStorage.getItem("user_id");
-        const logadoTipo = localStorage.getItem("user_tipo");
+    const logadoId = localStorage.getItem("user_id");
+    const logadoTipo = localStorage.getItem("user_tipo");
 
-        document.getElementById("modalUserId").value = id;
-        document.getElementById("modalSenha").value = "";
+    document.getElementById("modalUserId").value = id;
+    document.getElementById("modalSenha").value = "";
 
-        try {
-            const response = await fetch(`/usuarios/${id}?usuario_logado_id=${logadoId}&usuario_logado_tipo=${logadoTipo}`);
+    try {
+        const response = await fetch(`/usuarios/${id}?usuario_logado_id=${logadoId}&usuario_logado_tipo=${logadoTipo}`);
+        
+        if (response.ok) {
+            const usuario = await response.json();
+            console.log("2. Objeto completo retornado pela API:", usuario);
+            console.log("3. usuario.tipo vindo do banco:", usuario.tipo);
             
-            if (response.ok) {
-                const usuario = await response.json();
-                console.log("2. Objeto completo retornado pela API:", usuario);
-                console.log("3. usuario.tipo vindo do banco:", usuario.tipo);
-                
-                document.getElementById("modalNome").value = usuario.nome || "";
-                document.getElementById("modalEmail").value = usuario.email || "";
+            document.getElementById("modalNome").value = usuario.nome || "";
+            document.getElementById("modalEmail").value = usuario.email || "";
 
-                // Vamos priorizar o tipo que vem do banco (usuario.tipo), ou o parâmetro se não houver
-                const tipoBruto = usuario.tipo || tipoAtual || "";
-                const tipoFormatado = tipoBruto.toUpperCase();
-                
-                console.log("4. Tipo formatado para comparação:", tipoFormatado);
+            // Vamos priorizar o tipo que vem do banco (usuario.tipo), ou o parâmetro se não houver
+            const tipoBruto = usuario.tipo || tipoAtual || "";
+            const tipoFormatado = tipoBruto.toUpperCase();
+            
+            console.log("4. Tipo formatado para comparação:", tipoFormatado);
 
-                if (tipoFormatado === "CLIENTE") {
-                    console.log(">>> SUCESSO: Entrou no IF de CLIENTE! <<<");
-                    
-                    document.getElementById("blocoVeiculo").style.display = "block";
-                    
-                    if (usuario.veiculo) {
-                        console.log("5. Veículo encontrado:", usuario.veiculo);
-                        document.getElementById("modalPlaca").value = usuario.veiculo.placa || "";
-                        document.getElementById("modalModelo").value = usuario.veiculo.modelo || "";
-                        document.getElementById("modalMarca").value = usuario.veiculo.marca || "";
-                        document.getElementById("modalAno").value = usuario.veiculo.ano || "";
-                    } else {
-                        console.log("5. Aviso: O usuário é cliente, mas veio sem veículo cadastrado.");
-                        document.getElementById("modalPlaca").value = "";
-                        document.getElementById("modalModelo").value = "";
-                        document.getElementById("modalMarca").value = "";
-                        document.getElementById("modalAno").value = "";
-                    }
+            if (tipoFormatado === "CLIENTE") {
+                console.log(">>> SUCESSO: Entrou no IF de CLIENTE! <<<");
+                
+                document.getElementById("blocoVeiculo").style.display = "block";
+                
+                if (usuario.veiculo) {
+                    console.log("5. Veículo encontrado:", usuario.veiculo);
+                    document.getElementById("modalPlaca").value = usuario.veiculo.placa || "";
+                    document.getElementById("modalModelo").value = usuario.veiculo.modelo || "";
+                    document.getElementById("modalMarca").value = usuario.veiculo.marca || "";
+                    document.getElementById("modalAno").value = usuario.veiculo.ano || "";
                 } else {
-                    console.log(">>> ATENÇÃO: Caiu no ELSE (Não reconheceu como CLIENTE) <<<");
-                    document.getElementById("blocoVeiculo").style.display = "none";
+                    console.log("5. Aviso: O usuário é cliente, mas veio sem veículo cadastrado.");
+                    document.getElementById("modalPlaca").value = "";
+                    document.getElementById("modalModelo").value = "";
+                    document.getElementById("modalMarca").value = "";
+                    document.getElementById("modalAno").value = "";
                 }
-
-                document.getElementById("modalEdicao").style.display = "flex";
-
             } else {
-                alert("Não foi possível carregar os dados do utilizador.");
+                console.log(">>> ATENÇÃO: Caiu no ELSE (Não reconheceu como CLIENTE) <<<");
+                document.getElementById("blocoVeiculo").style.display = "none";
             }
-        } catch (error) {
-            console.error("Erro ao buscar utilizador:", error);
-        }
-    }
 
-    function fecharModalEdicao() {
-        document.getElementById("modalEdicao").style.display = "none";
+            document.getElementById("modalEdicao").style.display = "flex";
+
+        } else {
+            alert("Não foi possível carregar os dados do utilizador.");
+        }
+    } catch (error) {
+        console.error("Erro ao buscar utilizador:", error);
     }
+}
+
+function fecharModalEdicao() {
+    document.getElementById("modalEdicao").style.display = "none";
+}
 
 // 3. Salva as alterações via PUT
 async function salvarEdicaoModal(event) {
@@ -510,64 +512,99 @@ async function carregarComandos() {
     }
 }
 
-// Carrega o histórico das últimas 5 interações concluídas
 async function carregarHistoricoDecisoes() {
-    try {
-        const userId = localStorage.getItem("user_id");
-        const userTipo = localStorage.getItem("user_tipo");
+    const logadoId = localStorage.getItem("user_id");
+    const logadoTipo = localStorage.getItem("user_tipo");
 
-        let url = "/comandos/historico";
-        if (userId && userTipo && userTipo !== "null" && userTipo !== "undefined") {
-            url += `?usuario_id=${encodeURIComponent(userId)}&tipo_usuario=${encodeURIComponent(userTipo.toUpperCase())}`;
+    if (!logadoId || !logadoTipo) return;
+
+    try {
+        const response = await fetch(
+            `/comandos/historico?usuario_id=${logadoId}&tipo_usuario=${logadoTipo}&_t=${Date.now()}`
+        );
+
+        if (!response.ok) {
+            console.error("Falha ao carregar histórico. Status:", response.status);
+            return;
         }
 
-        const response = await apiFetch(url);
-        if (!response.ok) return;
-
-        const historico = await response.json();
-        const tbody = document.getElementById("tbody-historico");
+        const comandosFinalizados = await response.json();
+        const tbody = document.getElementById("tbody-historico-decisoes");
         if (!tbody) return;
 
         tbody.innerHTML = "";
 
-        if (!historico || historico.length === 0) {
+        if (!comandosFinalizados || comandosFinalizados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="p-4 text-center text-slate-500 italic">
-                        Nenhum registro encontrado no histórico.
+                    <td colspan="6" class="p-4 text-center text-slate-500 text-xs italic">
+                        Nenhum registro de comando encontrado.
                     </td>
-                </tr>`;
+                </tr>
+            `;
             return;
         }
 
-        historico.forEach(cmd => {
-            const placaVeiculo = cmd.veiculo ? cmd.veiculo.placa : `Veículo #${cmd.veiculo_id}`;
-            const nomeSolicitante = cmd.motorista ? cmd.motorista.nome : `Motorista #${cmd.motorista_id}`;
+        // 1. Obtém o limite selecionado no HTML
+        const selectLimite = document.getElementById("select-itens-pagina");
+        const limiteValor = selectLimite ? selectLimite.value : "10";
 
+        // 2. Aplica a limitação na lista de resultados
+        let listaExibicao = comandosFinalizados;
+        if (limiteValor !== "todas") {
+            const limiteNumerico = parseInt(limiteValor, 10);
+            listaExibicao = comandosFinalizados.slice(0, limiteNumerico);
+        }
+
+        // 3. Renderiza apenas os itens limitados
+        listaExibicao.forEach(item => {
             const tr = document.createElement("tr");
-            tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition";
+            tr.className = "border-b border-slate-700/50 hover:bg-slate-800/40 transition";
+
+            const isAprovado = String(item.status).toUpperCase() === "APROVADO";
+            const badgeClass = isAprovado 
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                : "bg-rose-500/10 text-rose-400 border-rose-500/20";
+
+            const dataBruta = item.respondido_em || item.solicitado_em;
+            const dataFormatada = dataBruta 
+                ? new Date(dataBruta).toLocaleString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })
+                : "---";
+
+            const emailOperador = item.funcionario?.email 
+                ? item.funcionario.email 
+                : (item.funcionario_id ? `Operador #${item.funcionario_id}` : 'N/A');
 
             tr.innerHTML = `
-                <td class="p-3 font-mono text-slate-400">#${cmd.id}</td>
-                <td class="p-3 font-semibold text-white font-mono">${placaVeiculo}</td>
-                <td class="p-3 text-slate-300 font-medium">${nomeSolicitante}</td>
-                <td class="p-3 font-mono text-amber-400 font-bold">${cmd.tipo_comando}</td>
+                <td class="p-3 font-mono text-slate-500 text-xs">#${item.id}</td>
+                <td class="p-3 font-mono text-amber-400 font-semibold">#${item.id}</td>
                 <td class="p-3">
-                    <span class="px-2 py-1 text-xs rounded font-bold ${getStatusBadgeClass(cmd.status)}">
-                        ${cmd.status}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${badgeClass}">
+                        ${item.status}
                     </span>
                 </td>
-                <td class="p-3 text-xs text-slate-400 italic">
-                    ${cmd.observacao || 'Sem observações cadastradas'}
+                <td class="p-3 text-slate-300 text-xs max-w-xs truncate" title="${item.observacao || ''}">
+                    ${item.observacao ? item.observacao : '<em class="text-slate-500">Sem observações</em>'}
                 </td>
+                <td class="p-3 text-slate-400 text-xs font-mono" title="${emailOperador}">
+                    ${emailOperador}
+                </td>
+                <td class="p-3 text-slate-400 text-xs">${dataFormatada}</td>
             `;
 
             tbody.appendChild(tr);
         });
-    } catch (err) {
-        console.error("Erro ao renderizar histórico de decisões:", err);
+    } catch (error) {
+        console.error("Erro ao buscar histórico de comandos:", error);
     }
 }
+
 
 // Auxiliares para badges e botões de ação
 function getStatusBadgeClass(status) {
@@ -586,10 +623,10 @@ function getAcoesCentralHTML(cmd) {
     if (cmd.status === 'PENDENTE' && (userTipo === 'FUNCIONARIO' || userTipo === 'ADMIN')) {
         return `
             <div class="flex gap-2">
-                <button onclick="analisarComando(${cmd.id}, 'APROVADO')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1 rounded transition">
+                <button onclick="abrirModalJustificativa(${cmd.id}, 'APROVADO')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1 rounded transition">
                     Aprovar
                 </button>
-                <button onclick="analisarComando(${cmd.id}, 'REJEITADO')" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded transition">
+                <button onclick="abrirModalJustificativa(${cmd.id}, 'REJEITADO')" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded transition">
                     Rejeitar
                 </button>
             </div>
@@ -599,28 +636,72 @@ function getAcoesCentralHTML(cmd) {
     return `<span class="text-xs text-slate-500 italic">Aguardando Central</span>`;
 }
 
-// Analisa e responde a um comando (Central/Admin)
-async function analisarComando(comandoId, novoStatus) {
-    const funcionarioId = localStorage.getItem("user_id") || 2;
+// 1. Abre o modal e define o estado do formulário
+function abrirModalJustificativa(comandoId, decisao) {
+    document.getElementById("modalComandoId").value = comandoId;
+    document.getElementById("modalDecisaoTipo").value = decisao;
+    document.getElementById("modalObservacao").value = "";
+
+    const titulo = document.getElementById("modalJustificativaTitulo");
+    const btn = document.getElementById("btnConfirmarDecisao");
+
+    if (decisao === "APROVADO") {
+        titulo.innerText = "Aprovar Solicitação de Comando";
+        btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded transition";
+        btn.innerText = "Confirmar Aprovação";
+    } else {
+        titulo.innerText = "Rejeitar Solicitação de Comando";
+        btn.className = "px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded transition";
+        btn.innerText = "Confirmar Rejeição";
+    }
+
+    document.getElementById("modalJustificativa").classList.remove("hidden");
+}
+
+// 2. Fecha o modal
+function fecharModalJustificativa() {
+    document.getElementById("modalJustificativa").classList.add("hidden");
+}
+
+// 3. Confirma a decisão de comando (Aprovar ou Rejeitar) e envia para a API
+async function confirmarDecisaoComando(event) {
+    event.preventDefault();
+
+    const comandoId = document.getElementById("modalComandoId").value;
+    const decisao = document.getElementById("modalDecisaoTipo").value; // "APROVADO" ou "REJEITADO"
+    const observacao = document.getElementById("modalObservacao").value;
+    const funcionarioId = localStorage.getItem("user_id");
+
+    const payload = {
+        status: decisao,
+        observacao: observacao
+    };
 
     try {
-        const response = await apiFetch(`/comandos/${comandoId}/analisar?funcionario_id=${funcionarioId}`, {
+        // 1. Método alterado para PATCH
+        // 2. Query param ajustado para funcionario_id
+        const response = await fetch(`/comandos/${comandoId}/analisar?funcionario_id=${funcionarioId}`, {
             method: "PATCH",
-            body: JSON.stringify({
-                status: novoStatus,
-                observacao: `Ação (${novoStatus}) realizada em ${new Date().toLocaleTimeString()}`
-            })
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
         });
 
         if (response.ok) {
-            carregarComandos();
-            carregarHistoricoDecisoes();
+            alert(`Comando ${decisao.toLowerCase()} com sucesso!`);
+            fecharModalJustificativa();
+            
+            // Recarrega as listas e o histórico de auditoria
+            if (typeof carregarComandos === "function") carregarComandos();
+            if (typeof carregarHistoricoDecisoes === "function") carregarHistoricoDecisoes();
         } else {
-            const errData = await response.json();
-            alert(`Erro na análise: ${errData.detail || 'Sem permissão.'}`);
+            const err = await response.json();
+            alert(`Erro ao processar: ${err.detail || 'Permissão negada.'}`);
         }
-    } catch (err) {
-        console.error("Erro ao analisar comando:", err);
+    } catch (error) {
+        console.error("Erro na requisição de análise:", error);
+        alert("Erro ao conectar com o servidor.");
     }
 }
 

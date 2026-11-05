@@ -103,23 +103,6 @@ class AnaliseComandoUpdate(BaseModel):
     observacao: Optional[str] = Field(None, example="Liberado após verificação por chamada")
 
 
-# Resposta detalhada com os dados da solicitação do comando
-class SolicitacaoComandoResponse(BaseModel):
-    id: int
-    veiculo_id: int
-    motorista_id: int
-    tipo_comando: TipoComando
-    status: StatusComando
-    solicitado_em: datetime
-
-    # Objetos aninhados para exibir informações do motorista e do veículo
-    motorista: UsuarioResumoResponse
-    veiculo: VeiculoResumoResponse
-
-    class Config:
-        from_attributes = True
-
-
 # ==========================================
 # 4. SCHEMAS DE AUTENTICAÇÃO E TOKEN (JWT)
 # ==========================================
@@ -155,4 +138,59 @@ class LoginResponse(BaseModel):
     class Config:
         from_attributes = True
 
+  
+class HistoricoDecisaoResponse(BaseModel):
+    id: int
+    comando_id: int
+    operador_id: int
+    decisao: str
+    observacao: Optional[str] = None
+    data_decisao: datetime
+
+    class Config:
+        from_attributes = True
+
+# Schemas auxiliares para evitar erros de validação com relacionamentos
+class MotoristaSimplesResponse(BaseModel):
+    id: int
+    nome: str
+
+    class Config:
+        from_attributes = True # Ou orm_mode = True se estiver no Pydantic v1
+
+class VeiculoSimplesResponse(BaseModel):
+    id: int
+    placa: str
+    modelo: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+# Schema de resposta simples para o operador/funcionário
+class FuncionarioSimplesResponse(BaseModel):
+    id: int
+    nome: Optional[str] = None
+    email: str
+
+    class Config:
+        from_attributes = True
+
+# Atualização no schema principal
+class SolicitacaoComandoResponse(BaseModel):
+    id: int
+    veiculo_id: int
+    motorista_id: int
+    tipo_comando: str
+    status: str
+    solicitado_em: datetime
     
+    observacao: Optional[str] = None
+    funcionario_id: Optional[int] = None
+    respondido_em: Optional[datetime] = None
+
+    motorista: Optional[MotoristaSimplesResponse] = None
+    veiculo: Optional[VeiculoSimplesResponse] = None
+    funcionario: Optional[FuncionarioSimplesResponse] = None  # <--- NOVO CAMPO RETORNADO
+
+    class Config:
+        from_attributes = True

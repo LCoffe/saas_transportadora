@@ -103,3 +103,13 @@ class SolicitacaoComandoModel(Base):
     veiculo = relationship("VeiculoModel", back_populates="comandos")
     motorista = relationship("UsuarioModel", foreign_keys=[motorista_id], back_populates="comandos_solicitados")
     funcionario = relationship("UsuarioModel", foreign_keys=[funcionario_id], back_populates="comandos_aprovados")
+
+class HistoricoDecisao(Base):
+    __tablename__ = "historicos_decisao"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    comando_id = Column(Integer, ForeignKey("comandos_solicitados.id"), nullable=False)
+    operador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    decisao = Column(String(20), nullable=False)
+    observacao = Column(String(255), nullable=True)
+    data_decisao = Column(DateTime, default=datetime.utcnow)

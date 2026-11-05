@@ -290,9 +290,21 @@
                     </button>
 
                     <div id="container-historico" class="hidden p-4 border-t border-slate-700/50 bg-slate-800/30">
-                        <div class="flex justify-between items-center mb-4">
-                            <p class="text-xs text-slate-400">Comandos analisados e encerrados pela central.</p>
-                            <button onclick="carregarHistoricoDecisoes()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-slate-200 transition">
+                        <div class="flex items-center gap-3">
+                            <!-- Seletor de quantidade de itens -->
+                            <div class="flex items-center gap-2 text-xs text-slate-400">
+                                <label for="select-itens-pagina">Mostrar:</label>
+                                <select id="select-itens-pagina" onchange="carregarHistoricoDecisoes()" class="bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-500">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="todas">Todas</option>
+                                </select>
+                            </div>
+
+                            <!-- Botão de Atualizar que você já possui -->
+                            <button onclick="carregarHistoricoDecisoes()" class="btn-atualizar">
                                 🔄 Atualizar Histórico
                             </button>
                         </div>
@@ -302,15 +314,15 @@
                                 <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700">
                                     <tr>
                                         <th class="p-3">ID</th>
-                                        <th class="p-3">PLACA DO VEÍCULO</th>
-                                        <th class="p-3">SOLICITANTE</th>
-                                        <th class="p-3">COMANDO</th>
-                                        <th class="p-3">STATUS FINAL</th>
-                                        <th class="p-3">OBSERVAÇÃO / MOTIVO</th>
+                                        <th class="p-3">COMANDO ID</th>
+                                        <th class="p-3">DECISÃO</th>
+                                        <th class="p-3">JUSTIFICATIVA / OBSERVAÇÃO</th>
+                                        <th class="p-3">OPERADOR ID</th>
+                                        <th class="p-3">DATA / HORA</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tbody-historico">
-                                    <!-- Injetado pelo JS -->
+                                <tbody id="tbody-historico-decisoes">
+                                    <!-- Injetado via JS -->
                                 </tbody>
                             </table>
                         </div>
@@ -411,6 +423,43 @@
         </section>
 
     </main>
+
+    <!-- MODAL DE JUSTIFICATIVA -->
+    <div id="modalJustificativa" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex justify-center items-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-lg shadow-xl w-full max-w-md p-6 relative">
+            <h3 id="modalJustificativaTitulo" class="text-lg font-bold text-white mb-2">Confirmar Decisão</h3>
+            <p class="text-xs text-slate-400 mb-4">Insira abaixo uma observação para registrar no histórico de decisões.</p>
+
+            <!-- ATENÇÃO AQUI: onsubmit adicionado -->
+            <form id="formJustificativa" onsubmit="confirmarDecisaoComando(event)">
+                <input type="hidden" id="modalComandoId" />
+                <input type="hidden" id="modalDecisaoTipo" />
+
+                <div class="mb-4">
+                    <label for="modalObservacao" class="block text-xs font-semibold text-slate-300 uppercase mb-2">
+                        Observação / Motivo:
+                    </label>
+                    <textarea id="modalObservacao" 
+                            rows="3" 
+                            placeholder="Digite o motivo ou observação..." 
+                            class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-slate-200 text-sm focus:outline-none focus:border-amber-500 resize-none"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" 
+                            onclick="fecharModalJustificativa()" 
+                            class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            id="btnConfirmarDecisao" 
+                            class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded transition">
+                        Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Importação dos Scripts JS -->
     <script src="js/api.js"></script>

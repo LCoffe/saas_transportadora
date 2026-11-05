@@ -133,16 +133,11 @@ def obter_historico_comandos(
     tipo_usuario: Optional[models.TipoUsuario] = None, 
     db: Session = Depends(get_db)
 ):
-    """
-    Exibe histórico de comandos finalizados (não pendentes):
-    - CLIENTE (Motorista): Vê as decisões sobre os seus próprios comandos.
-    - FUNCIONARIO: Vê as decisões tomadas por ele próprio.
-    - ADMIN ou Sem Parâmetros: Vê todas as decisões tomadas no sistema.
-    """
     query = db.query(models.SolicitacaoComandoModel)\
               .options(
                   joinedload(models.SolicitacaoComandoModel.veiculo),
-                  joinedload(models.SolicitacaoComandoModel.motorista)
+                  joinedload(models.SolicitacaoComandoModel.motorista),
+                  joinedload(models.SolicitacaoComandoModel.funcionario)  # <--- CARREGA O OPERADOR
               )\
               .filter(models.SolicitacaoComandoModel.status != models.StatusComando.PENDENTE)
 
@@ -152,9 +147,4 @@ def obter_historico_comandos(
     elif tipo_usuario == models.TipoUsuario.FUNCIONARIO and usuario_id:
         query = query.filter(models.SolicitacaoComandoModel.funcionario_id == usuario_id)
 
-    elif tipo_usuario == models.TipoUsuario.ADMIN:
-        # Se ADMIN, traz o histórico global
-        pass
-
-    # Se ADMIN ou sem parâmetros, traz o histórico global
     return query.order_by(models.SolicitacaoComandoModel.id.desc()).all()
