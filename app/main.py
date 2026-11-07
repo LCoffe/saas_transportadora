@@ -2,10 +2,12 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import FileResponse
+import os
 
 # Importações dos módulos internos
 from app.database import engine, Base
-from app.routers import comandos, usuarios
+from app.routers import comandos, encomendas, usuarios
 
 # ==========================================
 # Carga Inicial do Banco de Dados
@@ -33,6 +35,7 @@ app.add_middleware(
 # ==========================================
 app.include_router(comandos.router)
 app.include_router(usuarios.router)
+app.include_router(encomendas.router)
 
 # ==========================================
 # Servir a interface Web do Frontend
@@ -49,3 +52,9 @@ def health_check():
         "mensagem": "GRC rodando com sucesso!",
         "timestamp": datetime.utcnow()
     }
+
+@app.get("/encomenda", response_class=FileResponse)
+def pagina_encomenda():
+    # Ajuste o caminho conforme o local real do seu arquivo HTML
+    caminho_html = os.path.join("frontend", "encomenda.html")
+    return FileResponse(caminho_html)

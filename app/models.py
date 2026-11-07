@@ -7,7 +7,8 @@ from sqlalchemy import (
     Enum, 
     DateTime, 
     ForeignKey, 
-    Boolean
+    Boolean,
+    Text
 )
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -104,12 +105,32 @@ class SolicitacaoComandoModel(Base):
     motorista = relationship("UsuarioModel", foreign_keys=[motorista_id], back_populates="comandos_solicitados")
     funcionario = relationship("UsuarioModel", foreign_keys=[funcionario_id], back_populates="comandos_aprovados")
 
-class HistoricoDecisao(Base):
-    __tablename__ = "historicos_decisao"
+class EncomendaModel(Base):
+    __tablename__ = "encomendas"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    comando_id = Column(Integer, ForeignKey("comandos_solicitados.id"), nullable=False)
-    operador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    decisao = Column(String(20), nullable=False)
-    observacao = Column(String(255), nullable=True)
-    data_decisao = Column(DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    serial = Column(String(30), unique=True, index=True, nullable=False)
+    descricao = Column(String(255), nullable=False)
+    criado_em = Column(DateTime, default=datetime.utcnow)
+
+    # Relacionamento com a rota
+    rota = relationship("RotaModel", back_populates="encomenda", uselist=False)
+
+class RotaModel(Base):
+    __tablename__ = "rotas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    serial = Column(String(30), index=True, nullable=False)
+    
+    # Colunas individuais para o endereço
+    rua = Column(String(150), nullable=False)
+    numero = Column(String(20), nullable=False)
+    complemento = Column(String(100), nullable=True)
+    bairro = Column(String(100), nullable=False)
+    cidade = Column(String(100), nullable=False)
+    estado = Column(String(2), nullable=False)
+
+    encomenda_id = Column(Integer, ForeignKey("encomendas.id"), nullable=False)
+    criado_em = Column(DateTime, default=datetime.utcnow)
+
+    encomenda = relationship("EncomendaModel", back_populates="rota")

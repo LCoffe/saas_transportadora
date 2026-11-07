@@ -194,3 +194,27 @@ class SolicitacaoComandoResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CriarEncomendaSchema(BaseModel):
+    descricao: str
+    rua: str
+    numero: str
+    complemento: Optional[str] = None
+    bairro: str
+    cidade: str
+    estado: str
+
+class EncomendaResponse(BaseModel):
+    id: int
+    serial: str
+    descricao: str
+    rua: str
+    numero: str
+    complemento: Optional[str] = None
+    bairro: str
+    cidade: str
+    estado: str
+    criado_em: datetime
+
+    class Config:
+        from_attributes = True
