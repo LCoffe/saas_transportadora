@@ -121,16 +121,31 @@ class RotaModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     serial = Column(String(30), index=True, nullable=False)
-    
-    # Colunas individuais para o endereço
     rua = Column(String(150), nullable=False)
     numero = Column(String(20), nullable=False)
     complemento = Column(String(100), nullable=True)
     bairro = Column(String(100), nullable=False)
     cidade = Column(String(100), nullable=False)
     estado = Column(String(2), nullable=False)
+    status = Column(String(20), default="DISPONIVEL", nullable=False) # DISPONIVEL ou ACEITA
 
     encomenda_id = Column(Integer, ForeignKey("encomendas.id"), nullable=False)
     criado_em = Column(DateTime, default=datetime.utcnow)
 
     encomenda = relationship("EncomendaModel", back_populates="rota")
+
+
+class RotaIniciadaModel(Base):
+    __tablename__ = "rotas_iniciadas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    serial = Column(String(30), unique=True, index=True, nullable=False)
+    rota_id = Column(Integer, ForeignKey("rotas.id"), nullable=False)
+    encomenda_id = Column(Integer, ForeignKey("encomendas.id"), nullable=False)
+    motorista_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    status = Column(String(20), default="EM_ANDAMENTO", nullable=False)
+    iniciada_em = Column(DateTime, default=datetime.utcnow)
+
+    rota = relationship("RotaModel")
+    encomenda = relationship("EncomendaModel")
+    motorista = relationship("UsuarioModel")

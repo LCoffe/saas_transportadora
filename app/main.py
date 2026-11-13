@@ -7,7 +7,7 @@ import os
 
 # Importações dos módulos internos
 from app.database import engine, Base
-from app.routers import comandos, encomendas, usuarios
+from app.routers import comandos, encomendas, usuarios, rotas
 
 # ==========================================
 # Carga Inicial do Banco de Dados
@@ -36,6 +36,7 @@ app.add_middleware(
 app.include_router(comandos.router)
 app.include_router(usuarios.router)
 app.include_router(encomendas.router)
+app.include_router(rotas.router)
 
 # ==========================================
 # Servir a interface Web do Frontend

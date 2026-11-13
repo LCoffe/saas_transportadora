@@ -218,3 +218,41 @@ class EncomendaResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class EncomendaResumoSchema(BaseModel):
+    id: int
+    descricao: str
+
+    class Config:
+        from_attributes = True
+
+class RotaDisponivelResponse(BaseModel):
+    id: int
+    serial: str
+    rua: str
+    numero: str
+    complemento: Optional[str] = None
+    bairro: str
+    cidade: str
+    estado: str
+    status: str
+    criado_em: datetime
+    encomenda: Optional[EncomendaResumoSchema] = None
+
+    class Config:
+        from_attributes = True
+
+class AceitarRotaSchema(BaseModel):
+    motorista_id: int
+
+class RotaIniciadaResponse(BaseModel):
+    id: int
+    serial: str
+    rota_id: int
+    encomenda_id: int
+    motorista_id: int
+    status: str
+    iniciada_em: datetime
+
+    class Config:
+        from_attributes = True

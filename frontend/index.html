@@ -67,73 +67,154 @@
                 </div>
             </header>
 
-            <div class="space-y-6">
-                <!-- 1. Painel de Gestão de Usuários (Visível para Admin/Funcionário) -->
-                <div id="painel-gestao" class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-                    <button type="button" 
-                            onclick="togglePainel('container-criar-usuario-pai', 'seta-usuarios')" 
-                            class="w-full p-4 flex justify-between items-center bg-slate-800 hover:bg-slate-700/50 transition">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-amber-400 text-lg">👤</span>
-                            <h3 class="text-base font-semibold text-white">Gestão de Usuários</h3>
+                <div class="space-y-6">
+                    <!-- 1. Painel de Gestão de Usuários (Visível para Admin/Funcionário) -->
+                    <div id="painel-gestao" class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                        <button type="button" 
+                                onclick="togglePainel('container-criar-usuario-pai', 'seta-usuarios')" 
+                                class="w-full p-4 flex justify-between items-center bg-slate-800 hover:bg-slate-700/50 transition">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-amber-400 text-lg">👤</span>
+                                <h3 class="text-base font-semibold text-white">Gestão de Usuários</h3>
+                            </div>
+                            <svg id="seta-usuarios" class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div id="container-criar-usuario-pai" class="hidden p-6 border-t border-slate-700/50 bg-slate-800/30">
+                            <p id="subtitulo-cadastro-usuario" class="text-xs text-slate-400 mb-4">Cadastre novos motoristas ou funcionários para acesso ao sistema.</p>
+                            
+                            <form id="user-create-form" onsubmit="cadastrarUsuario(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-400 mb-1">Nome Completo</label>
+                                    <input type="text" id="new-user-nome" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="Ex: Carlos Silva">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-400 mb-1">E-mail</label>
+                                    <input type="email" id="new-user-email" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="carlos@transp.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-400 mb-1">Senha</label>
+                                    <input type="password" id="new-user-senha" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="••••••••">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-400 mb-1">Perfil do Usuário</label>
+                                    <select id="new-user-tipo" onchange="toggleCamposVeiculo()" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500">
+                                        <option value="CLIENTE">Motorista / Caminhoneiro</option>
+                                        <option value="FUNCIONARIO" id="opt-funcionario">Funcionário Central</option>
+                                        <option value="ADMIN" id="opt-admin">Administrador</option>
+                                    </select>
+                                </div>
+
+                                <div id="box-veiculo" class="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-700/50 mt-2">
+                                    <div>
+                                        <label class="block text-xs font-medium text-amber-400 mb-1">Placa do Veículo *</label>
+                                        <input type="text" id="new-veiculo-placa" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="ABC1D23">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-amber-400 mb-1">Modelo do Veículo *</label>
+                                        <input type="text" id="new-veiculo-modelo" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Volvo FH 540">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-amber-400 mb-1">Marca do Veículo</label>
+                                        <input type="text" id="new-veiculo-marca" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Volvo">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-amber-400 mb-1">Ano do Veículo</label>
+                                        <input type="number" id="new-veiculo-ano" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="2023">
+                                    </div>
+                                </div>
+
+                                <div class="md:col-span-4 flex justify-end">
+                                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 font-semibold text-slate-950 px-6 py-2 rounded transition shadow">
+                                        Cadastrar Usuário
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <svg id="seta-usuarios" class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    </div>
+
+                <div id="secao-rotas-aceitas" class="hidden bg-slate-800/80 border border-slate-700/80 rounded-lg overflow-hidden">
+                    <button type="button" onclick="toggleSecao('conteudo-rotas-aceitas', 'icone-rotas-aceitas')" 
+                        class="w-full flex items-center justify-between p-4 text-left hover:bg-slate-800 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">🚛</span>
+                            <span class="font-semibold text-slate-100 text-sm">Minhas Rotas Aceitas (Em Andamento)</span>
+                        </div>
+                        <svg id="icone-rotas-aceitas" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
 
-                    <div id="container-criar-usuario-pai" class="hidden p-6 border-t border-slate-700/50 bg-slate-800/30">
-                        <p id="subtitulo-cadastro-usuario" class="text-xs text-slate-400 mb-4">Cadastre novos motoristas ou funcionários para acesso ao sistema.</p>
-                        
-                        <form id="user-create-form" onsubmit="cadastrarUsuario(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">Nome Completo</label>
-                                <input type="text" id="new-user-nome" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="Ex: Carlos Silva">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">E-mail</label>
-                                <input type="email" id="new-user-email" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="carlos@transp.com">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">Senha</label>
-                                <input type="password" id="new-user-senha" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500" placeholder="••••••••">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">Perfil do Usuário</label>
-                                <select id="new-user-tipo" onchange="toggleCamposVeiculo()" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none focus:border-amber-500">
-                                    <option value="CLIENTE">Motorista / Caminhoneiro</option>
-                                    <option value="FUNCIONARIO" id="opt-funcionario">Funcionário Central</option>
-                                    <option value="ADMIN" id="opt-admin">Administrador</option>
-                                </select>
-                            </div>
-
-                            <div id="box-veiculo" class="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-700/50 mt-2">
-                                <div>
-                                    <label class="block text-xs font-medium text-amber-400 mb-1">Placa do Veículo *</label>
-                                    <input type="text" id="new-veiculo-placa" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="ABC1D23">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-amber-400 mb-1">Modelo do Veículo *</label>
-                                    <input type="text" id="new-veiculo-modelo" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Volvo FH 540">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-amber-400 mb-1">Marca do Veículo</label>
-                                    <input type="text" id="new-veiculo-marca" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Volvo">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-amber-400 mb-1">Ano do Veículo</label>
-                                    <input type="number" id="new-veiculo-ano" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="2023">
-                                </div>
-                            </div>
-
-                            <div class="md:col-span-4 flex justify-end">
-                                <button type="submit" class="bg-amber-500 hover:bg-amber-600 font-semibold text-slate-950 px-6 py-2 rounded transition shadow">
-                                    Cadastrar Usuário
-                                </button>
-                            </div>
-                        </form>
+                    <div id="conteudo-rotas-aceitas" class="hidden p-4 pt-0 border-t border-slate-700/50">
+                        <div class="flex justify-between items-center my-3">
+                            <p class="text-xs text-slate-400">Entregas aceitas e vinculadas à sua conta.</p>
+                            <button onclick="carregarMinhasRotas()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded text-slate-200 transition">
+                                🔄 Atualizar
+                            </button>
+                        </div>
+                        <div id="lista-rotas-aceitas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
                 </div>
+
+                <!-- 2. ABA EXCLUSIVA DE ADMIN / FUNCIONÁRIO (TABELA GERENCIAL) -->
+                <div id="secao-gestao-rotas" class="hidden bg-slate-800/80 border border-slate-700/80 rounded-lg overflow-hidden">
+                    <button type="button" onclick="toggleSecao('conteudo-gestao-rotas', 'icone-gestao-rotas')" 
+                        class="w-full flex items-center justify-between p-4 text-left hover:bg-slate-800 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">🗺️</span>
+                            <span class="font-semibold text-slate-100 text-sm">Rotas em Andamento (Painel Operacional)</span>
+                        </div>
+                        <svg id="icone-gestao-rotas" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div id="conteudo-gestao-rotas" class="hidden p-4 pt-0 border-t border-slate-700/50">
+                        <div class="flex flex-wrap justify-between items-center gap-3 my-3">
+                            <p class="text-xs text-slate-400">Acompanhamento de todas as rotas aceitas e reatribuição de motoristas.</p>
+                            
+                            <div class="flex items-center gap-3">
+                                <!-- Seletor de Quantidade -->
+                                <div class="flex items-center gap-2 text-xs text-slate-400">
+                                    <label for="select-limite-rotas">Mostrar:</label>
+                                    <select id="select-limite-rotas" onchange="carregarMinhasRotas()" 
+                                        class="bg-slate-900 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-amber-500">
+                                        <option value="5">5</option>
+                                        <option value="10" selected>10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="todas">Todas</option>
+                                    </select>
+                                </div>
+
+                                <button onclick="carregarMinhasRotas()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded text-slate-200 transition">
+                                    🔄 Atualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-700 text-[11px] uppercase text-slate-400 bg-slate-900/50">
+                                        <th class="p-3">Serial</th>
+                                        <th class="p-3">Encomenda</th>
+                                        <th class="p-3">Endereço de Entrega</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3">Motorista Responsável</th>
+                                        <th class="p-3">Aceita Em</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-gestao-rotas" class="divide-y divide-slate-800 text-xs">
+                                    <!-- Linhas preenchidas via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
 
                 <div id="painel-lista-usuarios" class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden mt-6">
                     <!-- Cabeçalho Clicável com a Seta -->
@@ -458,6 +539,19 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="secao-rotas-disponiveis" class="hidden bg-slate-800 p-5 rounded-lg border border-slate-700 mt-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-amber-400">🚚 Rotas Disponíveis para Entrega</h3>
+            <button onclick="carregarRotasDisponiveis()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded text-slate-200">
+                Atualizar
+            </button>
+        </div>
+
+        <div id="lista-rotas-disponiveis" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Cards preenchidos via JS -->
         </div>
     </div>
 

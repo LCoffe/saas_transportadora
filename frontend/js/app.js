@@ -22,6 +22,13 @@ function toggleCamposVeiculo() {
     }
 }
 
+function toggleSecao(conteudoId, iconeId) {
+    const conteudo = document.getElementById(conteudoId);
+    const icone = document.getElementById(iconeId);
+    if (conteudo) conteudo.classList.toggle("hidden");
+    if (icone) icone.classList.toggle("rotate-180");
+}
+
 // Função responsável por alternar entre a tela de Login e o Painel Principal
 function atualizarInterface() {
     const token = localStorage.getItem("access_token") || localStorage.getItem("user_email");
@@ -52,6 +59,8 @@ function atualizarInterface() {
         aplicarPermissoesPerfil();
         carregarListaUsuariosEdicao();
         carregarHistoricoDecisoes();
+        carregarRotasDisponiveis();
+        carregarMinhasRotas();
         carregarComandos();
     } 
     // SE NÃO ESTIVER LOGADO:
@@ -155,6 +164,21 @@ async function handleLogin(event) {
 function handleLogout() {
     removeToken();
     localStorage.clear();
+
+    // Oculta e limpa as seções de rotas imediatamente
+    const secaoDisponiveis = document.getElementById("secao-rotas-disponiveis");
+    const listaDisponiveis = document.getElementById("lista-rotas-disponiveis");
+    if (secaoDisponiveis) secaoDisponiveis.classList.add("hidden");
+    if (listaDisponiveis) listaDisponiveis.innerHTML = "";
+
+    const secaoAceitas = document.getElementById("secao-rotas-aceitas");
+    const listaAceitas = document.getElementById("lista-rotas-aceitas");
+    if (secaoAceitas) secaoAceitas.classList.add("hidden");
+    if (listaAceitas) listaAceitas.innerHTML = "";
+
+    const secaoGestao = document.getElementById("secao-gestao-rotas");
+    if (secaoGestao) secaoGestao.classList.add("hidden");
+
     atualizarInterface();
 }
 
@@ -724,6 +748,284 @@ function togglePainel(containerId, setaId, funcaoCarregar = null) {
     } else {
         container.classList.add("hidden");
         if (seta) seta.classList.remove("rotate-180");
+    }
+}
+
+async function carregarRotasDisponiveis() {
+    const secao = document.getElementById("secao-rotas-disponiveis");
+    const container = document.getElementById("lista-rotas-disponiveis");
+    const logadoId = localStorage.getItem("user_id");
+    const tipoUsuario = localStorage.getItem("user_tipo");
+
+    // Se não houver usuário logado, oculta a seção e encerra
+    if (!logadoId || !tipoUsuario) {
+        if (secao) secao.classList.add("hidden");
+        if (container) container.innerHTML = "";
+        return;
+    }
+
+    // Se estiver logado, exibe a seção
+    if (secao) secao.classList.remove("hidden");
+    if (!container) return;
+
+    const isCliente = tipoUsuario === "CLIENTE";
+
+    try {
+        const response = await fetch(`/rotas/disponiveis?_t=${Date.now()}`);
+        if (!response.ok) return;
+
+        const rotas = await response.json();
+        container.innerHTML = "";
+
+        if (rotas.length === 0) {
+            container.innerHTML = `<p class="text-slate-500 text-xs italic col-span-2">Nenhuma rota disponível no momento.</p>`;
+            return;
+        }
+
+        rotas.forEach(rota => {
+            const descricao = rota.encomenda ? rota.encomenda.descricao : "Encomenda sem descrição";
+            const comp = rota.complemento ? ` - ${rota.complemento}` : "";
+
+            const botaoAcao = isCliente
+                ? `<button onclick="aceitarRota(${rota.id}, '${rota.serial}')" 
+                       class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-1.5 rounded text-xs transition">
+                       ✓ Aceitar Rota
+                   </button>`
+                : `<span class="block text-center text-[11px] text-slate-500 border border-slate-800 rounded py-1">
+                       Aguardando motorista
+                   </span>`;
+
+            const card = document.createElement("div");
+            card.className = "bg-slate-900/90 border border-slate-700 p-4 rounded-lg flex flex-col justify-between gap-3";
+            card.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-mono text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">
+                            ${rota.serial}
+                        </span>
+                        <span class="text-xs text-slate-400">${rota.cidade}/${rota.estado}</span>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-200 mb-1">${descricao}</p>
+                    <p class="text-xs text-slate-400">
+                        ${rota.rua}, ${rota.numero}${comp} — ${rota.bairro}
+                    </p>
+                </div>
+
+                ${botaoAcao}
+            `;
+            container.appendChild(card);
+        });
+    } catch (error) {
+        console.error("Erro ao carregar rotas disponíveis:", error);
+    }
+}
+
+async function aceitarRota(rotaId, serial) {
+    const motoristaId = localStorage.getItem("user_id");
+    const tipoUsuario = localStorage.getItem("user_tipo");
+
+    if (tipoUsuario !== "CLIENTE") {
+        alert("Apenas motoristas (CLIENTE) podem aceitar rotas.");
+        return;
+    }
+
+    if (!motoristaId) {
+        alert("Usuário não identificado. Faça login novamente.");
+        return;
+    }
+
+    if (!confirm(`Deseja aceitar e iniciar a rota ${serial}?`)) return;
+
+    try {
+        const response = await fetch(`/rotas/${rotaId}/aceitar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ motorista_id: parseInt(motoristaId, 10) })
+        });
+
+        if (response.ok) {
+            alert(`Rota ${serial} aceita com sucesso!`);
+            carregarRotasDisponiveis();
+        } else {
+            const err = await response.json();
+            alert(`Erro: ${err.detail || "Não foi possível aceitar a rota."}`);
+        }
+    } catch (error) {
+        console.error("Erro ao aceitar rota:", error);
+    }
+}
+
+async function carregarMinhasRotas() {
+    const secaoMotorista = document.getElementById("secao-rotas-aceitas");
+    const secaoGestao = document.getElementById("secao-gestao-rotas");
+    const logadoId = localStorage.getItem("user_id");
+    const tipoUsuario = localStorage.getItem("user_tipo");
+
+    // Se deslogado, oculta ambas
+    if (!logadoId || !tipoUsuario) {
+        if (secaoMotorista) secaoMotorista.classList.add("hidden");
+        if (secaoGestao) secaoGestao.classList.add("hidden");
+        return;
+    }
+
+    const isCliente = tipoUsuario === "CLIENTE";
+
+    // Alterna a visibilidade das abas conforme o perfil
+    if (isCliente) {
+        if (secaoMotorista) secaoMotorista.classList.remove("hidden");
+        if (secaoGestao) secaoGestao.classList.add("hidden");
+    } else {
+        if (secaoMotorista) secaoMotorista.classList.add("hidden");
+        if (secaoGestao) secaoGestao.classList.remove("hidden");
+    }
+
+    try {
+        // Busca as rotas iniciadas
+        const resRotas = await fetch(`/rotas/minhas?usuario_id=${logadoId}&tipo_usuario=${tipoUsuario}&_t=${Date.now()}`);
+        if (!resRotas.ok) return;
+        const rotas = await resRotas.json();
+
+        // FLUXO 1: VISÃO DO MOTORISTA (CARDS)
+        if (isCliente) {
+            const container = document.getElementById("lista-rotas-aceitas");
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (rotas.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 text-xs italic col-span-2">Nenhuma rota em andamento no momento.</p>`;
+                return;
+            }
+
+            rotas.forEach(item => {
+                const comp = item.complemento ? ` - ${item.complemento}` : "";
+                const dataFormatada = item.iniciada_em
+                    ? new Date(item.iniciada_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                    : "";
+
+                const card = document.createElement("div");
+                card.className = "bg-slate-900/90 border border-emerald-500/30 p-4 rounded-lg flex flex-col justify-between gap-2";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-mono text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">${item.serial}</span>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">${item.status}</span>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-200 mb-1">${item.descricao}</p>
+                        <p class="text-xs text-slate-400">${item.rua}, ${item.numero}${comp} — ${item.bairro} (${item.cidade}/${item.estado})</p>
+                    </div>
+                    <div class="text-[11px] text-slate-500 border-t border-slate-800 pt-2 mt-1">Aceita em: ${dataFormatada}</div>
+                `;
+                container.appendChild(card);
+            });
+            return;
+        }
+
+        // FLUXO 2: VISÃO DE ADMIN / FUNCIONÁRIO (TABELA COM SELETOR DE LIMITE E TROCA DE MOTORISTA)
+        const tbody = document.getElementById("tbody-gestao-rotas");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        if (rotas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">Nenhuma rota iniciada encontrada.</td></tr>`;
+            return;
+        }
+
+        // Busca lista de usuários para montar o dropdown de motoristas (ajuste o endpoint se o seu de listar usuários tiver outro nome)
+        let listaMotoristas = [];
+        try {
+            const resUsers = await fetch(`/usuarios/?_t=${Date.now()}`);
+            if (resUsers.ok) {
+                const todosUsuarios = await resUsers.json();
+                listaMotoristas = todosUsuarios.filter(u => u.tipo === "CLIENTE");
+            }
+        } catch (e) {
+            console.warn("Não foi possível carregar lista de motoristas:", e);
+        }
+
+        // Aplica o limite selecionado no <select>
+        const selectLimite = document.getElementById("select-limite-rotas");
+        const limiteValor = selectLimite ? selectLimite.value : "10";
+        let rotasExibicao = rotas;
+        if (limiteValor !== "todas") {
+            rotasExibicao = rotas.slice(0, parseInt(limiteValor, 10));
+        }
+
+        rotasExibicao.forEach(item => {
+            const comp = item.complemento ? ` - ${item.complemento}` : "";
+            const enderecoCompleto = `${item.rua}, ${item.numero}${comp} - ${item.bairro} (${item.cidade}/${item.estado})`;
+            const dataFormatada = item.iniciada_em
+                ? new Date(item.iniciada_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                : "---";
+
+            // Monta as opções do select de motoristas
+            let opcoesMotorista = listaMotoristas.map(m => {
+                const selected = m.id === item.motorista_id ? "selected" : "";
+                return `<option value="${m.id}" ${selected}>${m.nome} (${m.email})</option>`;
+            }).join("");
+
+            // Fallback caso a rota de usuários não retorne nada
+            if (!opcoesMotorista) {
+                opcoesMotorista = `<option value="${item.motorista_id}" selected>${item.motorista_nome}</option>`;
+            }
+
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-800/40 transition";
+            tr.innerHTML = `
+                <td class="p-3 font-mono text-amber-400 font-semibold">${item.serial}</td>
+                <td class="p-3 text-slate-200">${item.descricao}</td>
+                <td class="p-3 text-slate-400 max-w-xs truncate" title="${enderecoCompleto}">${enderecoCompleto}</td>
+                <td class="p-3">
+                    <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        ${item.status}
+                    </span>
+                </td>
+                <td class="p-3">
+                    <div class="flex items-center gap-2">
+                        <select id="select-mot-${item.id}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:border-amber-500 focus:outline-none">
+                            ${opcoesMotorista}
+                        </select>
+                        <button onclick="salvarNovoMotorista(${item.id})" title="Salvar alteração de motorista"
+                            class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-[11px] font-semibold transition">
+                            Salvar
+                        </button>
+                    </div>
+                </td>
+                <td class="p-3 text-slate-400">${dataFormatada}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar rotas em andamento:", error);
+    }
+}
+
+async function salvarNovoMotorista(rotaIniciadaId) {
+    const select = document.getElementById(`select-mot-${rotaIniciadaId}`);
+    const tipoUsuario = localStorage.getItem("user_tipo");
+    if (!select) return;
+
+    const novoMotoristaId = parseInt(select.value, 10);
+
+    try {
+        const response = await fetch(`/rotas/iniciadas/${rotaIniciadaId}/motorista`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                novo_motorista_id: novoMotoristaId,
+                usuario_logado_tipo: tipoUsuario
+            })
+        });
+
+        if (response.ok) {
+            alert("Motorista da rota alterado com sucesso!");
+            carregarMinhasRotas();
+        } else {
+            const err = await response.json();
+            alert(`Erro: ${err.detail || "Não foi possível alterar o motorista."}`);
+        }
+    } catch (error) {
+        console.error("Erro ao salvar novo motorista:", error);
     }
 }
 
