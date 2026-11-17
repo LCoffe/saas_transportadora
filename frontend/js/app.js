@@ -80,15 +80,21 @@ function aplicarPermissoesPerfil() {
     const optAdmin = document.getElementById("opt-admin");
     const selectTipo = document.getElementById("new-user-tipo");
 
+    // Elemento do botão de criar rotas
+    const btnCriarRotaContainer = document.getElementById("container-btn-criar-rota");
+
     // Oculta ambos os painéis por padrão
     if (painelMotorista) painelMotorista.classList.add("hidden");
     if (painelGestao) painelGestao.classList.add("hidden");
+    if (btnCriarRotaContainer) btnCriarRotaContainer.classList.add("hidden");
 
     // Exibe o painel adequado conforme o tipo de conta
     if (userTipo === "CLIENTE") {
         if (painelMotorista) painelMotorista.classList.remove("hidden");
     } else if (userTipo === "FUNCIONARIO" || userTipo === "ADMIN") {
         if (painelGestao) painelGestao.classList.remove("hidden");
+
+        if (btnCriarRotaContainer) btnCriarRotaContainer.classList.remove("hidden");
     }
 
     // Regra RBAC para opções de criação de perfil
@@ -999,8 +1005,6 @@ async function carregarMinhasRotas() {
         console.error("Erro ao carregar rotas em andamento:", error);
     }
 }
-
-
 
 document.addEventListener("DOMContentLoaded", () => {
     atualizarInterface();
