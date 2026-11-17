@@ -1000,34 +1000,7 @@ async function carregarMinhasRotas() {
     }
 }
 
-async function salvarNovoMotorista(rotaIniciadaId) {
-    const select = document.getElementById(`select-mot-${rotaIniciadaId}`);
-    const tipoUsuario = localStorage.getItem("user_tipo");
-    if (!select) return;
 
-    const novoMotoristaId = parseInt(select.value, 10);
-
-    try {
-        const response = await fetch(`/rotas/iniciadas/${rotaIniciadaId}/motorista`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                novo_motorista_id: novoMotoristaId,
-                usuario_logado_tipo: tipoUsuario
-            })
-        });
-
-        if (response.ok) {
-            alert("Motorista da rota alterado com sucesso!");
-            carregarMinhasRotas();
-        } else {
-            const err = await response.json();
-            alert(`Erro: ${err.detail || "Não foi possível alterar o motorista."}`);
-        }
-    } catch (error) {
-        console.error("Erro ao salvar novo motorista:", error);
-    }
-}
 
 document.addEventListener("DOMContentLoaded", () => {
     atualizarInterface();

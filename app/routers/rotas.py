@@ -81,6 +81,7 @@ def listar_minhas_rotas(usuario_id: int, tipo_usuario: str, db: Session = Depend
             "serial": item.serial,
             "status": item.status,
             "iniciada_em": item.iniciada_em,
+            "motorista_id": item.motorista_id,
             "motorista_nome": item.motorista.nome if item.motorista else f"Motorista #{item.motorista_id}",
             "descricao": item.encomenda.descricao if item.encomenda else "Sem descrição",
             "rua": item.rota.rua if item.rota else "",
@@ -92,3 +93,32 @@ def listar_minhas_rotas(usuario_id: int, tipo_usuario: str, db: Session = Depend
         })
 
     return resultado
+
+from pydantic import BaseModel
+
+# Schema auxiliar para receber os dados enviados pelo frontend
+class AtualizarMotoristaSchema(BaseModel):
+    novo_motorista_id: int
+    usuario_logado_tipo: str
+
+@router.put("/iniciadas/{rota_id}/motorista")
+def alterar_motorista_rota(rota_id: int, payload: AtualizarMotoristaSchema, db: Session = Depends(get_db)):
+    # 1. Busca a rota iniciada pelo ID
+    rota_iniciada = db.query(models.RotaIniciadaModel).filter(models.RotaIniciadaModel.id == rota_id).first()
+    if not rota_iniciada:
+        raise HTTPException(status_code=404, detail="Rota iniciada não encontrada.")
+
+    # 2. Verifica se o novo motorista existe e se é do tipo CLIENTE
+    novo_motorista = db.query(models.UsuarioModel).filter(models.UsuarioModel.id == payload.novo_motorista_id).first()
+    if not novo_motorista:
+        raise HTTPException(status_code=404, detail="Novo motorista não encontrado.")
+    
+    if novo_motorista.tipo != models.TipoUsuario.CLIENTE:
+        raise HTTPException(status_code=400, detail="O usuário selecionado não é um motorista válido.")
+
+    # 3. Atualiza o motorista responsável
+    rota_iniciada.motorista_id = payload.novo_motorista_id
+    db.commit()
+    db.refresh(rota_iniciada)
+
+    return {"message": "Motorista da rota alterado com sucesso!"}
